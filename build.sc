@@ -16,7 +16,6 @@ object lib extends BasicModule {
     ivy"io.circe::circe-core:${circeVersion}",
     ivy"io.circe::circe-parser:${circeVersion}",
     ivy"io.circe::circe-generic:${circeVersion}",
-    ivy"com.lihaoyi::requests:0.8.0" // move to a different lib prob
   )
 
   object test extends ScalaTests with TestModule.Utest {
@@ -30,6 +29,7 @@ object cli extends BasicModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::mainargs:0.5.4",
-    ivy"com.lihaoyi::fansi:0.4.0"
+    ivy"com.lihaoyi::fansi:0.4.0",
+    ivy"com.lihaoyi::requests:0.8.0"
   )
 }

@@ -4,7 +4,6 @@ import taindem.Taindem
 import taindem.model._
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import taindem.client.GPTClientRequests
 
 object Cli {
 

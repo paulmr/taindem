@@ -1,11 +1,14 @@
 package taindem.client
 
+import io.circe.Decoder
+import io.circe.Encoder
 import io.circe.Json
-import io.circe.syntax._
-import scala.concurrent.{ExecutionContext, Future}
-import taindem.model._
-import io.circe.{Encoder, Decoder}
 import io.circe.parser._
+import io.circe.syntax._
+import taindem.model._
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 import GPTClient._
 
@@ -39,16 +42,6 @@ trait GPTClient {
   }
 
   def completion = endpoint[CompletionsRequest, CompletionsResponse]("v1/chat/completions")
-
-}
-
-class GPTClientRequests(val apiKey: String, val apiRoot: String = "https://api.openai.com")
-  (implicit val ec: ExecutionContext) extends GPTClient {
-
-  def sendRequestBase(url: String, body: String): Future[GPTResponse[String]] = Future {
-    val res = requests.post(url, headers = baseHeaders, data = body.toString)
-    if(res.statusCode == 200) Right(res.text()) else Left(res.statusMessage)
-  }
 
 }
 

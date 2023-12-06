@@ -1,20 +1,43 @@
 package taindem.cli
 
+import taindem.Taindem
 import taindem.model._
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import taindem.client.GPTClientRequests
 
 object Cli {
-  @mainargs.main def run() = {
-    implicit val ec: scala.concurrent.ExecutionContext =
-      scala.concurrent.ExecutionContext.global
+
+  implicit val ec: scala.concurrent.ExecutionContext =
+    scala.concurrent.ExecutionContext.global
+
+  def printHistory(state: Taindem) =
+    println(state.history.map(msg => s"[${msg.role}]> ${msg.content}").mkString("\n"))
+
+  @annotation.tailrec
+  def mainLoop(state: Taindem, timeout: Duration): Unit = {
+    val input = scala.io.StdIn.readLine("? ")
+    input match {
+      case ":quit" => ()
+      case ":history" =>
+        printHistory(state)
+        mainLoop(state, timeout)
+      case _ =>
+        Await.result(state.submitMessage(input), timeout) match {
+          case Left(err) =>
+            println(s"Error: $err")
+          case Right((msg, nextState)) =>
+            println(msg.content)
+            mainLoop(nextState, timeout)
+        }
+    }
+  }
+
+  @mainargs.main def run(timeout: Int = 30) = {
     val apiKey = Option(System.getenv("GPT_API_KEY")).get
-    val gpt = new taindem.client.GPTClientRequests(apiKey)
-    val req = CompletionsRequest(Seq(
-      Message(role = "system", content = "You are a friendly machine who will help me to learn french.")))
-    val res = Await.result(gpt.completion(req), 20.seconds)
-    println(res)
+    val gpt = new GPTClientRequests(apiKey)
+    val taindem = Taindem(gpt)
+    mainLoop(taindem, timeout.seconds)
   }
 
   def main(args: Array[String]): Unit =

@@ -55,11 +55,11 @@ object JsonTests extends TestSuite {
 
   def tests = Tests {
     test("example request") {
-      assert(parse(exampleResponse).flatMap(_.as[CompletionResponse]).isRight)
+      assert(parse(exampleResponse).flatMap(_.as[CompletionsResponse]).isRight)
     }
 
     test("example response") {
-      assert(parse(exampleRequest).flatMap(_.as[CompletionRequest]).isRight)
+      assert(parse(exampleRequest).flatMap(_.as[CompletionsRequest]).isRight)
     }
   }
 

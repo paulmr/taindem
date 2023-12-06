@@ -11,6 +11,7 @@ object lib extends ScalaModule {
     ivy"io.circe::circe-core:${circeVersion}",
     ivy"io.circe::circe-parser:${circeVersion}",
     ivy"io.circe::circe-generic:${circeVersion}",
+    ivy"com.lihaoyi::requests:0.8.0" // move to a different lib prob
   )
 
   object test extends ScalaTests with TestModule.Utest {

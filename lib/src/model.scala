@@ -3,7 +3,7 @@ package taindem.model
 import io.circe.generic.JsonCodec
 
 @JsonCodec case class Message(role: String, content: String)
-@JsonCodec case class CompletionRequest(model: String, messages: Seq[Message])
+@JsonCodec case class CompletionsRequest(model: String, messages: Seq[Message])
 
 @JsonCodec case class Choice(
   finish_reason: String,
@@ -17,7 +17,7 @@ import io.circe.generic.JsonCodec
   total_tokens: Int
 )
 
-@JsonCodec case class CompletionResponse(
+@JsonCodec case class CompletionsResponse(
   choices: Seq[Choice],
   created: Long,
   id: String,

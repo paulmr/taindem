@@ -11,13 +11,18 @@ case class Taindem(
   gpt: client.GPTClient,
   model: String = "gpt-3.5-turbo",
   history: Seq[Message] = Taindem.startPrompt("French")) {
-  def submitMessage(msgText: String)(implicit ec: ExecutionContext): Future[GPTResponse[(Message, Taindem)]] = {
+  def submitMessage(msgText: String)(implicit ec: ExecutionContext): Future[GPTResponse[(TaindemAnswer, Taindem)]] = {
     val userMsg = Message("user", msgText)
     val req = CompletionsRequest(model = model, messages = history :+ userMsg)
     gpt.completion(req).map { res =>
-      res.map { completions =>
-        val responseMsg = completions.choices.head.message
-        responseMsg -> copy(history = history :+ userMsg :+ responseMsg)
+      res.flatMap { completions =>
+        val baseMessage = completions.choices.head.message
+        parse(baseMessage.content)
+          .flatMap(_.as[TaindemAnswer])
+          .left.map(_.getMessage())
+          .map { responseMsg =>
+            responseMsg -> copy(history = history :+ userMsg :+ baseMessage)
+          }
       }
     }
   }
@@ -30,9 +35,13 @@ object Taindem {
          |to have a fun converstation in order to practice my language
          |skills. Before you answer, please correct each thing that I
          |say so that it sounds natural and like the sort of thing a
-         |native speaker of ${language} would say. Insert the word
-         |"Correction" and the provide the correction. After that,
-         |give your normal response, prefixed with the word "Answer".
+         |native speaker of ${language} would say, however,
+         |maintaining the level of formality or informality that I
+         |have provided in my initial message. The response should be
+         |in the form of a Json object, which contains two fields. The
+         |field "correction" should contain the corrected the version
+         |of my sentence. The field "answer" should contain your
+         |normal response.
          """.stripMargin
     )
   )

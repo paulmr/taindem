@@ -26,8 +26,9 @@ object Cli {
         Await.result(state.submitMessage(input), timeout) match {
           case Left(err) =>
             println(s"Error: $err")
-          case Right((msg, nextState)) =>
-            println(msg.content)
+          case Right((answer, nextState)) =>
+            println(s"${fansi.Color.Red("Correction")}: ${answer.correction}")
+            println(s"${fansi.Color.Green("Answer")}: ${answer.answer}")
             mainLoop(nextState, timeout)
         }
     }

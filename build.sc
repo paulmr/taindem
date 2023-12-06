@@ -28,5 +28,8 @@ object lib extends BasicModule {
 object cli extends BasicModule {
   override def moduleDeps = Seq(lib)
 
-  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.5.4")
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::mainargs:0.5.4",
+    ivy"com.lihaoyi::fansi:0.4.0"
+  )
 }

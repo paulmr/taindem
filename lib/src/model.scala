@@ -32,3 +32,8 @@ import io.circe.Json
   `object`: String,
   usage: Usage
 )
+
+@JsonCodec case class TaindemAnswer(
+  correction: String,
+  answer: String
+)

@@ -1,10 +1,11 @@
-package taindem.io
+package taindem.client
 
 import io.circe.Json
 import io.circe.syntax._
 import scala.concurrent.{ExecutionContext, Future}
 import taindem.model._
 import io.circe.{Encoder, Decoder}
+import io.circe.parser._
 
 import GPTClient._
 
@@ -25,7 +26,7 @@ trait GPTClient {
 
   protected def sendRequest(url: String, body: Json): Future[GPTResponse[Json]] =
     sendRequestBase(url, body.toString).map { res =>
-      res.map(_.asJson)
+      res.flatMap(src => parse(src).left.map(_.message))
     }
 
   private def decodeAs[T : Decoder](json: Json): GPTResponse[T] =
@@ -41,12 +42,12 @@ trait GPTClient {
 
 }
 
-class GTPClientRequests(val apiKey: String, val apiRoot: String = "https://api.openai.com/v1")
+class GPTClientRequests(val apiKey: String, val apiRoot: String = "https://api.openai.com")
   (implicit val ec: ExecutionContext) extends GPTClient {
 
   def sendRequestBase(url: String, body: String): Future[GPTResponse[String]] = Future {
-    val res = requests.get(url, headers = baseHeaders, data = body.toString)
-    if(res.statusCode == 200) Right(res.text) else Left(res.statusMessage)
+    val res = requests.post(url, headers = baseHeaders, data = body.toString)
+    if(res.statusCode == 200) Right(res.text()) else Left(res.statusMessage)
   }
 
 }

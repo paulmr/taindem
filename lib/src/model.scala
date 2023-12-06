@@ -3,7 +3,7 @@ package taindem.model
 import io.circe.generic.JsonCodec
 
 @JsonCodec case class Message(role: String, content: String)
-@JsonCodec case class CompletionsRequest(model: String, messages: Seq[Message])
+@JsonCodec case class CompletionsRequest(messages: Seq[Message], model: String = "gpt-3.5-turbo")
 
 @JsonCodec case class Choice(
   finish_reason: String,

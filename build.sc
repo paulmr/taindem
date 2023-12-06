@@ -1,11 +1,16 @@
 import mill._, scalalib._
 
-object lib extends ScalaModule {
+trait BasicModule extends ScalaModule {
   def scalaVersion = "2.13.12"
 
+  def scalacOptions = Seq("-deprecation")
+
+}
+
+object lib extends BasicModule {
   val circeVersion = "0.14.1"
 
-  def scalacOptions = Seq("-Ymacro-annotations")
+  def scalacOptions = super.scalacOptions.map(_ ++ Seq("-Ymacro-annotations"))
 
   def ivyDeps = Agg(
     ivy"io.circe::circe-core:${circeVersion}",
@@ -18,4 +23,10 @@ object lib extends ScalaModule {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.2")
   }
 
+}
+
+object cli extends BasicModule {
+  override def moduleDeps = Seq(lib)
+
+  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.5.4")
 }

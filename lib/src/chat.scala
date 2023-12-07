@@ -9,11 +9,12 @@ import _root_.io.circe.parser.parse
 
 case class Taindem(
   gpt: client.GPTClient,
-  model: String = "gpt-3.5-turbo",
+  model: String = "gpt-3.5-turbo-1106",
   history: Seq[Message] = Taindem.startPrompt("French")) {
   def submitMessage(msgText: String)(implicit ec: ExecutionContext): Future[GPTResponse[(TaindemAnswer, Taindem)]] = {
     val userMsg = Message("user", msgText)
-    val req = CompletionsRequest(model = model, messages = history :+ userMsg)
+    val req = CompletionsRequest(model = model, messages = history :+ userMsg,
+      response_format = Some(ResponseFormat("json_object")))
     gpt.completion(req).map { res =>
       res.flatMap { completions =>
         val baseMessage = completions.choices.head.message

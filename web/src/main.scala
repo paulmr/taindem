@@ -52,12 +52,28 @@ object TaindemWebApp {
     document.getElementById("user-input").scrollIntoView()
   }
 
+  val localStorageKey = "chatgpt-key"
+
+  def findApiKey(): String = {
+    // if there is an api key in the url, override it with that, and save it
+    val qs = new URLSearchParams(window.location.search)
+    if(qs.has("api-key")) {
+      console.log("saving api key from url")
+      window.localStorage.setItem(localStorageKey, qs.get("api-key"))
+    }
+    val stored = window.localStorage.getItem(localStorageKey)
+    if(stored == null || stored == "") {
+      window.alert("no api key found")
+      "test"
+    } else stored
+  }
+
   @JSExport
   def main(): Unit = {
     implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
-    val apiKey = Option(window.localStorage.getItem("chatgpt-key")).getOrElse("test")
-
+    val apiKey = findApiKey()
+    console.log(s"using api key: ${apiKey}")
     val gpt = new GPTClientFetch(apiKey)
     var t = new taindem.Taindem(gpt)
 

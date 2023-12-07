@@ -1,0 +1,44 @@
+#app {
+    max-width: 80%;
+    margin: 0 10%;
+}
+
+#message-log {
+    padding: 2em;
+}
+
+.message {
+    max-width: 60%;
+    padding: 1em;
+    border-radius: 5px;
+}
+
+.message-user {
+    margin-left: 40%;
+    background-color: lightblue;
+    border: 2px solid darkblue;
+}
+
+.message-correction {
+    border: 1px solid red;
+    font-size: 0.7em;
+    padding: 1em;
+    margin-bottom: 1em;
+    border-radius: 5px;
+}
+
+.message-answer {
+    background-color: purple;
+    color: white;
+    padding: 1em;
+    border-radius: 5px;
+}
+
+#user-input {
+    width: 100%;
+}
+
+#user-input input {
+    font-size: 2em;
+    width: 100%;
+}

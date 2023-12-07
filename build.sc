@@ -2,7 +2,10 @@ import mill._, scalalib._, scalajslib._
 
 trait BasicModule extends ScalaModule {
   def scalaVersion = "2.13.12"
-  def scalacOptions = Seq("-deprecation")
+  def scalacOptions = Seq(
+    "-deprecation",
+    "-Ymacro-annotations"
+  )
 
 }
 
@@ -14,8 +17,6 @@ object lib extends Module {
   val circeVersion = "0.14.1"
 
   trait LibModule extends BasicModule with PlatformScalaModule {
-
-    def scalacOptions = super.scalacOptions.map(_ ++ Seq("-Ymacro-annotations"))
 
     def ivyDeps = Agg(
       ivy"io.circe::circe-core::${circeVersion}",
@@ -44,4 +45,28 @@ object cli extends BasicModule {
 
 object web extends BasicJSModule {
   override def moduleDeps = Seq(lib.js)
+
+  def ivyDeps = Agg(
+    ivy"com.yang-bo::html::2.0.2"
+  )
+
+  // def resources = T {
+  //   os.makeDir(T.dest / "webapp")
+  //   val jsPath = fastLinkJS().dest.path
+  //   // Move main.js[.map]into the proper filesystem position
+  //   // in the resource folder for the web server code to pick up
+  //   os.copy(jsPath / "main.js", T.dest / "webapp" / "main.js")
+  //   os.copy(jsPath / "main.js.map", T.dest / "webapp" / "main.js.map")
+  //   super.resources() ++ Seq(PathRef(T.dest))
+  // }
+
+  def build = T {
+    val jsPath = fastLinkJS().dest.path
+    os.copy(jsPath / "main.js", T.dest / "main.js")
+    os.copy(jsPath / "main.js.map", T.dest / "main.js.map")
+    for(dir <- resources(); f <- os.list(dir.path)) {
+      os.copy.into(f, T.dest)
+    }
+    T.dest
+  }
 }

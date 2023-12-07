@@ -20,8 +20,9 @@ object TaindemWebApp {
     // )
 
   @html
-  def messageLogElem(submitCB: String => Unit): Binding[HTMLDivElement] = {
+  def messageLogElem(submitCB: String => Unit, lang: String): Binding[HTMLDivElement] = {
     <div id="app">
+    <div id="language">{lang}</div>
     <div id="message-log">
     {
       for(msg <- messageLog) yield {
@@ -73,7 +74,8 @@ object TaindemWebApp {
     } else stored
   }
 
-  def optionalQueryParam(name: String): Option[String] = Some(qs.get(name))
+  def optionalQueryParam(name: String): Option[String] =
+    if(qs.has(name)) Some(qs.get(name)) else None
 
   @JSExport
   def main(): Unit = {
@@ -81,8 +83,9 @@ object TaindemWebApp {
 
     val apiKey = findApiKey()
     console.log(s"using api key: ${apiKey}")
+    val lang = optionalQueryParam("lang").getOrElse("French")
     val gpt = new GPTClientFetch(apiKey)
-    var t = new taindem.Taindem(gpt)
+    var t = new taindem.Taindem(gpt, language = lang)
 
     def inputElement = document.getElementById("user-input-txt").asInstanceOf[HTMLInputElement]
 
@@ -102,6 +105,6 @@ object TaindemWebApp {
       }
     }
 
-    html.render(document.body, messageLogElem(submit))
+    html.render(document.body, messageLogElem(submit, lang))
   }
 }

@@ -35,10 +35,13 @@ object Cli {
     }
   }
 
-  @mainargs.main def run(timeout: Int = 30, temperature: Option[Double] = None) = {
+  @mainargs.main def run(timeout: Int = 30,
+    language: String = "French",
+    temperature: Option[Double] = None
+  ) = {
     val apiKey = Option(System.getenv("GPT_API_KEY")).get
     val gpt = new GPTClientRequests(apiKey)
-    val taindem = Taindem(gpt, temperature = temperature)
+    val taindem = Taindem(gpt, temperature = temperature, language = language)
     mainLoop(taindem, timeout.seconds)
   }
 

@@ -10,13 +10,15 @@ import _root_.io.circe.parser.parse
 case class Taindem(
   gpt: client.GPTClient,
   model: String = "gpt-3.5-turbo-1106",
-  history: Seq[Message] = Taindem.startPrompt("French"),
+  language: String = "French",
+  history: Seq[Message] = Seq.empty,
   temperature: Option[Double] = None) {
   def submitMessage(msgText: String)(implicit ec: ExecutionContext): Future[GPTResponse[(TaindemAnswer, Taindem)]] = {
+    val actualHistory = if(history.isEmpty) Taindem.startPrompt(language) else history
     val userMsg = Message("user", msgText)
     val req = CompletionsRequest(
       model = model,
-      messages = history :+ userMsg,
+      messages = actualHistory :+ userMsg,
       response_format = Some(ResponseFormat("json_object")),
       temperature = temperature
     )
@@ -29,7 +31,7 @@ case class Taindem(
           .orElse[String, TaindemAnswer](
             Right(TaindemAnswer(correction = None, answer = baseMessage.content)))
           .map { responseMsg =>
-            responseMsg -> copy(history = history :+ userMsg :+ baseMessage)
+            responseMsg -> copy(history = actualHistory :+ userMsg :+ baseMessage)
           }
       }
     }

@@ -34,16 +34,16 @@ object Taindem {
   def startPrompt(language: String) = Seq(
     Message("system",
       s"""You are going to speak to me entirely in ${language}. We are going
-         |to have a fun converstation in order to practice my language
+         |to have a converstation in order to practice my language
          |skills. Before you answer, please correct each thing that I
          |say so that it sounds natural and like the sort of thing a
          |native speaker of ${language} would say, however,
          |maintaining the level of formality or informality that I
-         |have provided in my initial message. The response should be
-         |in the form of a Json object, which contains two fields. The
-         |field "correction" should contain the corrected the version
-         |of my sentence. The field "answer" should contain your
-         |normal response.
+         |have provided in my initial message. Answer in the form of a
+         |Json object, which contains two fields. The field
+         |"correction" should contain the corrected the version of my
+         |sentence. The field "answer" should contain your normal
+         |response.
          """.stripMargin
     )
   )

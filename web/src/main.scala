@@ -56,11 +56,12 @@ object TaindemWebApp {
     document.getElementById("user-input").scrollIntoView()
   }
 
+  val qs = new URLSearchParams(window.location.search)
+
   val localStorageKey = "chatgpt-key"
 
   def findApiKey(): String = {
     // if there is an api key in the url, override it with that, and save it
-    val qs = new URLSearchParams(window.location.search)
     if(qs.has("api-key")) {
       console.log("saving api key from url")
       window.localStorage.setItem(localStorageKey, qs.get("api-key"))
@@ -71,6 +72,8 @@ object TaindemWebApp {
       "test"
     } else stored
   }
+
+  def optionalQueryParam(name: String): Option[String] = Some(qs.get(name))
 
   @JSExport
   def main(): Unit = {

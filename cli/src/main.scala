@@ -26,17 +26,19 @@ object Cli {
           case Left(err) =>
             println(s"Error: $err")
           case Right((answer, nextState)) =>
-            println(s"${fansi.Color.Red("Correction")}: ${answer.correction}")
+            answer.correction.foreach { correction =>
+              println(s"${fansi.Color.Red("Correction")}: ${correction}")
+            }
             println(s"${fansi.Color.Green("Answer")}: ${answer.answer}")
             mainLoop(nextState, timeout)
         }
     }
   }
 
-  @mainargs.main def run(timeout: Int = 30) = {
+  @mainargs.main def run(timeout: Int = 30, temperature: Option[Double] = None) = {
     val apiKey = Option(System.getenv("GPT_API_KEY")).get
     val gpt = new GPTClientRequests(apiKey)
-    val taindem = Taindem(gpt)
+    val taindem = Taindem(gpt, temperature = temperature)
     mainLoop(taindem, timeout.seconds)
   }
 

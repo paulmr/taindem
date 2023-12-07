@@ -28,7 +28,11 @@ object TaindemWebApp {
         msg match {
           case r: RobotResponse =>
             <div class="message message-robot">
-            <div class="message-correction">{r.message.correction}</div>
+            {
+              for(correction <- r.message.correction.toSeq) yield {
+                <div class="message-correction">{correction}</div>
+              }
+            }
             <div class="message-answer">{r.message.answer}</div>
             </div>
           case u: UserMessage => <div class="message message-user">{u.message}</div>

@@ -7,7 +7,9 @@ import io.circe.Json
 @JsonCodec case class CompletionsRequest(
   messages: Seq[Message],
   model: String,
-  response_format: Option[ResponseFormat] = None
+  response_format: Option[ResponseFormat] = None,
+  temperature: Option[Double] = None,
+  top_p: Option[Double] = None
 )
 
 @JsonCodec case class ResponseFormat(`type`: String)
@@ -34,6 +36,6 @@ import io.circe.Json
 )
 
 @JsonCodec case class TaindemAnswer(
-  correction: String,
+  correction: Option[String],
   answer: String
 )

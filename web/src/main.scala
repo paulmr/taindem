@@ -99,9 +99,9 @@ object TaindemWebApp {
             messageLog.value += RobotResponse(answer)
             t = nextT
         }
-        inputElement.scrollIntoView()
         inputElement.disabled = false
         inputElement.focus()
+        inputElement.scrollIntoView()
       }
     }
 

@@ -28,8 +28,7 @@ object ChatTests extends TestSuite {
 
     test("not json response") {
       // sometimes chat gpt doesn't actually give us json, would be nice to at least handle that gracefully
-      chatTest("""bad message""",
-        TaindemAnswer(correction = "corrected", answer = "answer"))
+      chatTest("bad message", TaindemAnswer(correction = "<no json>", answer = "bad message"))
     }
   }
 

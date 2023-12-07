@@ -20,6 +20,8 @@ case class Taindem(
         parse(baseMessage.content)
           .flatMap(_.as[TaindemAnswer])
           .left.map(_.getMessage())
+          .orElse[String, TaindemAnswer](
+            Right(TaindemAnswer(correction = "<no json>", answer = baseMessage.content)))
           .map { responseMsg =>
             responseMsg -> copy(history = history :+ userMsg :+ baseMessage)
           }

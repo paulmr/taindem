@@ -19,16 +19,21 @@ trait GPTClient {
   val apiKey: String
   val apiRoot: String
 
-  protected val baseHeaders: Map[String, String] = Map(
+  private val baseHeaders: Map[String, String] = Map(
     "Content-type" -> "application/json",
     "Authorization" -> s"Bearer $apiKey"
   )
 
-  protected def sendRequestBase(url: String, body: String): Future[GPTResponse[String]]
-  // impl can use baseHeaders
+  // the implementation should:
+  //    - add the provided headers to the request
+  //    - sent a `POST` request to the provided URL with the `body`
+  //    and return the response as an `Either` (i.e. `GPTResponse`)
+  //    with an error string in left if there was a problem
+  protected def sendRequestBase(url: String, headers: Map[String, String], body: String):
+      Future[GPTResponse[String]]
 
   protected def sendRequest(url: String, body: Json): Future[GPTResponse[Json]] =
-    sendRequestBase(url, body.toString).map { res =>
+    sendRequestBase(url, baseHeaders, body.toString).map { res =>
       res.flatMap(src => parse(src).left.map(_.message))
     }
 

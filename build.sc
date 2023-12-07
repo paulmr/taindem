@@ -50,18 +50,8 @@ object web extends BasicJSModule {
     ivy"com.yang-bo::html::2.0.2"
   )
 
-  // def resources = T {
-  //   os.makeDir(T.dest / "webapp")
-  //   val jsPath = fastLinkJS().dest.path
-  //   // Move main.js[.map]into the proper filesystem position
-  //   // in the resource folder for the web server code to pick up
-  //   os.copy(jsPath / "main.js", T.dest / "webapp" / "main.js")
-  //   os.copy(jsPath / "main.js.map", T.dest / "webapp" / "main.js.map")
-  //   super.resources() ++ Seq(PathRef(T.dest))
-  // }
-
   def build = T {
-    val jsPath = fastLinkJS().dest.path
+    val jsPath = fullLinkJS().dest.path
     os.copy(jsPath / "main.js", T.dest / "main.js")
     os.copy(jsPath / "main.js.map", T.dest / "main.js.map")
     for(dir <- resources(); f <- os.list(dir.path)) {

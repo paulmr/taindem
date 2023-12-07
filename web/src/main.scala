@@ -20,7 +20,7 @@ object TaindemWebApp {
     // )
 
   @html
-  def messageLogElem: Binding[HTMLDivElement] = {
+  def messageLogElem(submitCB: String => Unit): Binding[HTMLDivElement] = {
     <div id="app">
     <div id="message-log">
     {
@@ -37,10 +37,10 @@ object TaindemWebApp {
     }
     </div>
     <div id="user-input">
-    <input type="text" onkeypress= { ev:Event =>
+    <input id="user-input-txt" type="text" onkeypress= { ev:Event =>
       val target = ev.target.asInstanceOf[HTMLInputElement]
       if(ev.asInstanceOf[KeyboardEvent].key == "Enter") {
-        submitUserMessage(target.value)
+        submitCB(target.value)
         target.value = ""
       }
     }/>
@@ -52,12 +52,33 @@ object TaindemWebApp {
     document.getElementById("user-input").scrollIntoView()
   }
 
-  def submitUserMessage(msg: String) = {
-    messageLog.value += UserMessage(msg)
-  }
-
   @JSExport
   def main(): Unit = {
-    html.render(document.body, messageLogElem)
+    implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
+
+    val apiKey = Option(window.localStorage.getItem("chatgpt-key")).getOrElse("test")
+
+    val gpt = new GPTClientFetch(apiKey)
+    var t = new taindem.Taindem(gpt)
+
+    def inputElement = document.getElementById("user-input-txt").asInstanceOf[HTMLInputElement]
+
+    def submit(msg: String) = {
+      inputElement.disabled = true
+      messageLog.value += UserMessage(msg)
+      t.submitMessage(msg).foreach { res =>
+        res match {
+          case Left(err) => window.alert(err)
+          case Right((answer, nextT)) =>
+            messageLog.value += RobotResponse(answer)
+            t = nextT
+        }
+        inputElement.scrollIntoView()
+        inputElement.disabled = false
+        inputElement.focus()
+      }
+    }
+
+    html.render(document.body, messageLogElem(submit))
   }
 }

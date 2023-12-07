@@ -14,10 +14,10 @@ import GPTClient._
 
 trait GPTClient {
 
-  implicit val ec: ExecutionContext
+  implicit protected val ec: ExecutionContext
 
   val apiKey: String
-  val apiRoot: String
+  val apiRoot: String = "https://api.openai.com"
 
   private val baseHeaders: Map[String, String] = Map(
     "Content-type" -> "application/json",

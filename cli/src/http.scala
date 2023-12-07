@@ -4,8 +4,7 @@ import taindem.client._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-class GPTClientRequests(val apiKey: String, val apiRoot: String = "https://api.openai.com")
-  (implicit val ec: ExecutionContext) extends GPTClient {
+class GPTClientRequests(val apiKey: String)(implicit val ec: ExecutionContext) extends GPTClient {
 
   def sendRequestBase(url: String, headers: Map[String, String], body: String):
       Future[GPTClient.GPTResponse[String]] = Future {

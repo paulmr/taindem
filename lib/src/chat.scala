@@ -11,35 +11,39 @@ case class Taindem(
   gpt: client.GPTClient,
   model: String = "gpt-3.5-turbo-1106",
   language: String = "French",
-  history: Seq[Message] = Seq.empty,
   temperature: Option[Double] = None) {
-  def submitMessage(msgText: String)(implicit ec: ExecutionContext): Future[GPTResponse[(TaindemAnswer, Taindem)]] = {
-    val actualHistory = if(history.isEmpty) Taindem.startPrompt(language) else history
+
+  private var history: List[Message] = Taindem.startPrompt(language)
+
+  private def addMessage(m: Message) = history = history :+ m
+
+  def submitMessage(msgText: String)(implicit ec: ExecutionContext): Future[GPTResponse[TaindemAnswer]] = {
     val userMsg = Message("user", msgText)
+    addMessage(userMsg)
     val req = CompletionsRequest(
       model = model,
-      messages = actualHistory :+ userMsg,
+      messages = history,
       response_format = Some(ResponseFormat("json_object")),
       temperature = temperature
     )
     gpt.completion(req).map { res =>
       res.flatMap { completions =>
         val baseMessage = completions.choices.head.message
+        addMessage(baseMessage)
         parse(baseMessage.content)
           .flatMap(_.as[TaindemAnswer])
           .left.map(_.getMessage())
           .orElse[String, TaindemAnswer](
             Right(TaindemAnswer(correction = None, answer = baseMessage.content)))
-          .map { responseMsg =>
-            responseMsg -> copy(history = actualHistory :+ userMsg :+ baseMessage)
-          }
       }
     }
   }
+
+  def getHistory = history.toSeq
 }
 
 object Taindem {
-  def startPrompt(language: String) = Seq(
+  def startPrompt(language: String) = List(
     Message("system",
       s"""You are going to speak to me entirely in ${language}. We are going
          |to have a converstation in order to practice my language

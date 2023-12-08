@@ -10,28 +10,29 @@ object Cli {
   implicit val ec: scala.concurrent.ExecutionContext =
     scala.concurrent.ExecutionContext.global
 
-  def printHistory(state: Taindem) =
-    println(state.history.map(msg => s"[${msg.role}]> ${msg.content}").mkString("\n"))
+  def printHistory(t: Taindem) =
+    println(t.getHistory.map(msg => s"[${msg.role}]> ${msg.content}").mkString("\n"))
 
-  @annotation.tailrec
-  def mainLoop(state: Taindem, timeout: Duration): Unit = {
-    val input = scala.io.StdIn.readLine("? ")
-    input match {
-      case ":quit" => ()
-      case ":history" =>
-        printHistory(state)
-        mainLoop(state, timeout)
-      case _ =>
-        Await.result(state.submitMessage(input), timeout) match {
-          case Left(err) =>
-            println(s"Error: $err")
-          case Right((answer, nextState)) =>
-            answer.correction.foreach { correction =>
-              println(s"${fansi.Color.Red("Correction")}: ${correction}")
-            }
-            println(s"${fansi.Color.Green("Answer")}: ${answer.answer}")
-            mainLoop(nextState, timeout)
-        }
+  def mainLoop(t: Taindem, timeout: Duration): Unit = {
+    while(true) {
+      val input = scala.io.StdIn.readLine("? ")
+      input match {
+        case ":quit" =>
+          return
+        case ":history" =>
+          printHistory(t)
+        case _ =>
+          Await.result(t.submitMessage(input), timeout) match {
+            case Left(err) =>
+              println(s"Error: $err")
+              return
+            case Right(answer) =>
+              answer.correction.foreach { correction =>
+                println(s"${fansi.Color.Red("Correction")}: ${correction}")
+              }
+              println(s"${fansi.Color.Green("Answer")}: ${answer.answer}")
+          }
+      }
     }
   }
 

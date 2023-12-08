@@ -26,11 +26,11 @@ trait BasicJSModule extends BasicModule with ScalaJSModule {
   *  The `correct` solution would probably be to just republish it
   *  under a different org, updated for scala 2.13.
   */
-object scaladifflib extends Module {
-  trait ScalaDiffLibModule extends BasicModule with PlatformScalaModule
+object scalalibdiff extends Module {
+  trait ScalaLibDiffModule extends BasicModule with PlatformScalaModule
 
-  object jvm extends ScalaDiffLibModule
-  object js extends ScalaDiffLibModule with BasicJSModule
+  object jvm extends ScalaLibDiffModule
+  object js extends ScalaLibDiffModule with BasicJSModule
 }
 
 object lib extends Module {
@@ -50,10 +50,10 @@ object lib extends Module {
 
   }
   object jvm extends LibModule {
-    def moduleDeps = Seq(scaladifflib.jvm)
+    def moduleDeps = Seq(scalalibdiff.jvm)
   }
   object js extends LibModule with BasicJSModule {
-    def moduleDeps = Seq(scaladifflib.js)
+    def moduleDeps = Seq(scalalibdiff.js)
   }
 }
 

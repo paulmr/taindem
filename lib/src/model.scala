@@ -1,5 +1,6 @@
 package taindem.model
 
+import scalalibdiff.Diff
 import io.circe.generic.JsonCodec
 import io.circe.Json
 
@@ -35,7 +36,13 @@ import io.circe.Json
   usage: Usage
 )
 
-@JsonCodec case class TaindemAnswer(
+@JsonCodec case class TaindemAnswerJson(
   correction: Option[String],
   answer: String
+)
+
+case class TaindemAnswer(
+  correction: Option[String],
+  answer: String,
+  diff: Option[List[Diff.Difference]]
 )

@@ -1,5 +1,6 @@
 package taindem
 
+import scalalibdiff.Diff
 import model._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
@@ -31,10 +32,14 @@ case class Taindem(
         val baseMessage = completions.choices.head.message
         addMessage(baseMessage)
         parse(baseMessage.content)
-          .flatMap(_.as[TaindemAnswer])
+          .flatMap(_.as[TaindemAnswerJson])
+          .map { baseAnswer =>
+            val diff = for(correction <- baseAnswer.correction) yield Diff(msgText, correction)
+            TaindemAnswer(correction = baseAnswer.correction, answer = baseAnswer.answer, diff = diff)
+          }
           .left.map(_.getMessage())
           .orElse[String, TaindemAnswer](
-            Right(TaindemAnswer(correction = None, answer = baseMessage.content)))
+            Right(TaindemAnswer(correction = None, answer = baseMessage.content, diff = None)))
       }
     }
   }

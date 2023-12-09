@@ -37,7 +37,7 @@ case class Taindem(
           .flatMap(_.as[TaindemAnswerJson])
           .map { baseAnswer =>
             val diff = for(correction <- baseAnswer.correction) yield Diff(msgText, correction)
-            TaindemAnswer(correction = baseAnswer.correction,
+            TaindemAnswer(correction = baseAnswer.correction.filter(_ != msgText), // remove if no changes
               answer = baseAnswer.answer, question = msgText, diff = diff)
           }
           .left.map(_.getMessage())
@@ -65,12 +65,10 @@ object Taindem {
          |would seem unatural for a native speaker of ${language}. You
          |don't need to correct slight style changes or things like
          |that. Answer in the form of a Json object, which contains
-         |two fields. The first field is optional, and is called
-         |"correction". If there are any corrections to the sentence
-         |then this field should contain the corrected the version of
-         |my sentence. If there are no corrections then this field
-         |should just be missing. The field "answer" should contain
-         |your normal response.
+         |two fields. It should always contain the first field, which
+         |is called "correction". This field will contain the
+         |corrected version of my sentence. The field "answer" should
+         |contain your normal response.
          """.stripMargin
     )
   )

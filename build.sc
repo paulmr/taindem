@@ -75,7 +75,7 @@ object web extends BasicJSModule {
   )
 
   def build = T {
-    val jsPath = fastLinkJS().dest.path
+    val jsPath = fullLinkJS().dest.path
     os.copy(jsPath / "main.js", T.dest / "main.js")
     os.copy(jsPath / "main.js.map", T.dest / "main.js.map")
     for(dir <- resources(); f <- os.list(dir.path)) {

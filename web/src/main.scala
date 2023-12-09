@@ -5,6 +5,7 @@ import com.thoughtworks.binding.Binding, Binding._
 import org.scalajs.dom._
 import org.lrng.binding.html
 import scala.scalajs.js.annotation._
+import scalalibdiff.Diff
 
 @JSExportTopLevel("taindem")
 object TaindemWebApp {
@@ -20,6 +21,15 @@ object TaindemWebApp {
     // )
 
   @html
+  def renderDiffs(ds: List[Diff.Difference], l: String, r: String) = for(d <- ds) yield {
+    d match {
+      case Diff.Added(from, to) => <span class="diff-added">{r.substring(from, to)}</span>
+      case Diff.Removed(from, to) => <span class="diff-removed">{l.substring(from, to)}</span>
+      case Diff.Same(from, to, _, _) => <span class="diff-same">{l.substring(from, to)}</span>
+    }
+  }
+
+  @html
   def messageLogElem(submitCB: String => Unit, lang: String): Binding[HTMLDivElement] = {
     <div id="app">
     <div id="language">{lang}</div>
@@ -30,8 +40,8 @@ object TaindemWebApp {
           case r: RobotResponse =>
             <div class="message message-robot">
             {
-              for(correction <- r.message.correction.toSeq) yield {
-                <div class="message-correction">{correction}</div>
+              for(correction <- r.message.correction.toSeq; diffs <- r.message.diff) yield {
+                <div class="message-correction">{renderDiffs(diffs, r.message.question, correction)}</div>
               }
             }
             <div class="message-answer">{r.message.answer}</div>

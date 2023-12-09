@@ -30,7 +30,6 @@
 
 .message-correction {
     border: 1px solid red;
-    font-size: 0.7em;
     padding: 1em;
     margin-bottom: 1em;
     border-radius: 5px;
@@ -50,4 +49,13 @@
 #user-input input {
     font-size: 2em;
     width: 100%;
+}
+
+.diff-added {
+    color: green;
+}
+
+.diff-removed {
+    color: red;
+    text-decoration: line-through;
 }

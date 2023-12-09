@@ -75,9 +75,7 @@ object web extends BasicJSModule {
   )
 
   def build = T {
-    val jsPath = (if(System.getProperty("dev-mode") != null) fastLinkJS() else fullLinkJS())
-      .dest.path
-    println(s"[${System.getProperty("dev-mode") == null}] :: ${jsPath}")
+    val jsPath = fastLinkJS().dest.path
     os.copy(jsPath / "main.js", T.dest / "main.js")
     os.copy(jsPath / "main.js.map", T.dest / "main.js.map")
     for(dir <- resources(); f <- os.list(dir.path)) {

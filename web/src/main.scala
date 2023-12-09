@@ -85,7 +85,7 @@ object TaindemWebApp {
     console.log(s"using api key: ${apiKey}")
     val lang = optionalQueryParam("lang").getOrElse("French")
     val gpt = new GPTClientFetch(apiKey)
-    var t = new taindem.Taindem(gpt, language = lang)
+    val t = new taindem.Taindem(gpt, language = lang)
 
     def inputElement = document.getElementById("user-input-txt").asInstanceOf[HTMLInputElement]
 
@@ -95,9 +95,8 @@ object TaindemWebApp {
       t.submitMessage(msg).foreach { res =>
         res match {
           case Left(err) => window.alert(err)
-          case Right((answer, nextT)) =>
+          case Right(answer) =>
             messageLog.value += RobotResponse(answer)
-            t = nextT
         }
         inputElement.disabled = false
         inputElement.focus()

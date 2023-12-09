@@ -18,6 +18,8 @@ case class Taindem(
 
   private def addMessage(m: Message) = history = history :+ m
 
+  def reset() = history = Taindem.startPrompt(language)
+
   def submitMessage(msgText: String)(implicit ec: ExecutionContext): Future[GPTResponse[TaindemAnswer]] = {
     val userMsg = Message("user", msgText)
     addMessage(userMsg)
@@ -35,11 +37,13 @@ case class Taindem(
           .flatMap(_.as[TaindemAnswerJson])
           .map { baseAnswer =>
             val diff = for(correction <- baseAnswer.correction) yield Diff(msgText, correction)
-            TaindemAnswer(correction = baseAnswer.correction, answer = baseAnswer.answer, diff = diff)
+            TaindemAnswer(correction = baseAnswer.correction,
+              answer = baseAnswer.answer, question = msgText, diff = diff)
           }
           .left.map(_.getMessage())
           .orElse[String, TaindemAnswer](
-            Right(TaindemAnswer(correction = None, answer = baseMessage.content, diff = None)))
+            Right(TaindemAnswer(correction = None, answer = baseMessage.content,
+              question = msgText, diff = None)))
       }
     }
   }

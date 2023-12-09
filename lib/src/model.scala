@@ -44,5 +44,6 @@ import io.circe.Json
 case class TaindemAnswer(
   correction: Option[String],
   answer: String,
+  question: String,
   diff: Option[List[Diff.Difference]]
 )

@@ -17,25 +17,29 @@ object TaindemWebApp {
   val messageLog = Vars.empty[ConversationPoint]
 
   @html
-  def renderDiffs(ds: List[Diff.Difference], l: String, r: String) =
+  def renderDiffs(ds: List[Diff.Difference], _l: String, _r: String) = {
+    val l = _l.split("\\s+").toSeq
+    val r = _r.split("\\s+").toSeq
+
     <ul class="diff">
     <li class="diff-incorrect">
     {
       ds.collect {
-        case Diff.Removed(from, to) => <span class="diff-removed">{l.substring(from, to)}</span>
-        case Diff.Same(from, to, _, _) => <span class="diff-same">{l.substring(from, to)}</span>
+        case Diff.Removed(from, to) => <span class="diff-removed">{l.slice(from, to).mkString(" ")} </span>
+        case Diff.Same(from, to, _, _) => <span class="diff-same">{l.slice(from, to).mkString(" ")} </span>
       }
     }
     </li>
     <li class="diff-correct">
     {
       ds.collect {
-        case Diff.Added(from, to) => <span class="diff-added">{r.substring(from, to)}</span>
-        case Diff.Same(from, to, _, _) => <span class="diff-same">{l.substring(from, to)}</span>
+        case Diff.Added(from, to) => <span class="diff-added">{r.slice(from, to).mkString(" ")} </span>
+        case Diff.Same(from, to, _, _) => <span class="diff-same">{l.slice(from, to).mkString(" ")} </span>
       }
     }
     </li>
     </ul>
+  }
 
   @html
   def messageLogElem(submitCB: String => Unit, lang: String): Binding[HTMLDivElement] = {

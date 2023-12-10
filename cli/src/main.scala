@@ -14,15 +14,17 @@ object Cli {
   def printHistory(t: Taindem) =
     println(t.getHistory.map(msg => s"[${msg.role}]> ${msg.content}").mkString("\n"))
 
-  def diffToString(ds: List[Diff.Difference], l: String, r: String): String = {
+  def diffToString(ds: List[Diff.Difference], _l: String, _r: String): String = {
+    val l = _l.split("\\s+").toSeq
+    val r = _r.split("\\s+").toSeq
     val left = ds.collect {
-      case Diff.Removed(from, to) => fansi.Color.Red(s"-${l.substring(from, to)}-")
-      case Diff.Same(from, to, _, _) => s"${l.substring(from, to)}"
-    }.mkString
+      case Diff.Removed(from, to) => fansi.Color.Red(s"-${l.slice(from, to).mkString(" ")}-")
+      case Diff.Same(from, to, _, _) => s"${l.slice(from, to).mkString(" ")}"
+    }.mkString(" ")
     val right = ds.collect {
-      case Diff.Added(from, to) => fansi.Color.Green(s"[${r.substring(from, to)}]")
-      case Diff.Same(from, to, _, _) => s"${l.substring(from, to)}"
-    }.mkString
+      case Diff.Added(from, to) => fansi.Color.Green(s"[${r.slice(from, to).mkString(" ")}]")
+      case Diff.Same(from, to, _, _) => s"${l.slice(from, to).mkString(" ")}"
+    }.mkString(" ")
     s"\t${left}\n\t${right}"
   }
 

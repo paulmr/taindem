@@ -36,7 +36,8 @@ case class Taindem(
         parse(baseMessage.content)
           .flatMap(_.as[TaindemAnswerJson])
           .map { baseAnswer =>
-            val diff = for(correction <- baseAnswer.correction) yield Diff(msgText, correction)
+            val diff = for(correction <- baseAnswer.correction) yield Diff(
+              msgText.split("\\s+").toSeq, correction.split("\\s+").toSeq)
             TaindemAnswer(correction = baseAnswer.correction.filter(_ != msgText), // remove if no changes
               answer = baseAnswer.answer, question = msgText, diff = diff)
           }

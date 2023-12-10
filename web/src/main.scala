@@ -21,13 +21,25 @@ object TaindemWebApp {
     // )
 
   @html
-  def renderDiffs(ds: List[Diff.Difference], l: String, r: String) = for(d <- ds) yield {
-    d match {
-      case Diff.Added(from, to) => <span class="diff-added">{r.substring(from, to)}</span>
-      case Diff.Removed(from, to) => <span class="diff-removed">{l.substring(from, to)}</span>
-      case Diff.Same(from, to, _, _) => <span class="diff-same">{l.substring(from, to)}</span>
+  def renderDiffs(ds: List[Diff.Difference], l: String, r: String) =
+    <ul class="diff">
+    <li class="diff-incorrect">
+    {
+      ds.collect {
+        case Diff.Removed(from, to) => <span class="diff-removed">{l.substring(from, to)}</span>
+        case Diff.Same(from, to, _, _) => <span class="diff-same">{l.substring(from, to)}</span>
+      }
     }
-  }
+    </li>
+    <li class="diff-correct">
+    {
+      ds.collect {
+        case Diff.Added(from, to) => <span class="diff-added">{r.substring(from, to)}</span>
+        case Diff.Same(from, to, _, _) => <span class="diff-same">{l.substring(from, to)}</span>
+      }
+    }
+    </li>
+    </ul>
 
   @html
   def messageLogElem(submitCB: String => Unit, lang: String): Binding[HTMLDivElement] = {

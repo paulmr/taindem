@@ -15,11 +15,15 @@ object Cli {
     println(t.getHistory.map(msg => s"[${msg.role}]> ${msg.content}").mkString("\n"))
 
   def diffToString(ds: List[Diff.Difference], l: String, r: String): String = {
-    ds.map {
-      case Diff.Added(from, to) => fansi.Color.Green(s"[${r.substring(from, to)}]")
-      case Diff.Removed(from, to) => fansi.Color.Red(s"[${l.substring(from, to)}]")
+    val left = ds.collect {
+      case Diff.Removed(from, to) => fansi.Color.Red(s"-${l.substring(from, to)}-")
       case Diff.Same(from, to, _, _) => s"${l.substring(from, to)}"
     }.mkString
+    val right = ds.collect {
+      case Diff.Added(from, to) => fansi.Color.Green(s"[${r.substring(from, to)}]")
+      case Diff.Same(from, to, _, _) => s"${l.substring(from, to)}"
+    }.mkString
+    s"\t${left}\n\t${right}"
   }
 
   def mainLoop(t: Taindem, timeout: Duration): Unit = {
@@ -54,6 +58,7 @@ object Cli {
     language: String = "French",
     temperature: Option[Double] = None
   ) = {
+    println(diffToString(Diff("Ça vas?", "Ça va ?"), "Ça vas?", "Ça va ?"))
     val apiKey = Option(System.getenv("GPT_API_KEY")).get
     val gpt = new GPTClientRequests(apiKey)
     val taindem = Taindem(gpt, temperature = temperature, language = language)

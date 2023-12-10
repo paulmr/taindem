@@ -30,7 +30,6 @@
 
 .message-correction {
     border: 1px solid red;
-    padding: 1em;
     margin-bottom: 1em;
     border-radius: 5px;
 }
@@ -49,6 +48,14 @@
 #user-input input {
     font-size: 2em;
     width: 100%;
+}
+
+ul.diff {
+    list-style: none;
+}
+
+li.diff-incorrect {
+    opacity: 0.5%;
 }
 
 .diff-added {

@@ -21,24 +21,24 @@ object TaindemWebApp {
     val l = _l.split("\\s+").toSeq
     val r = _r.split("\\s+").toSeq
 
-    <ul class="diff">
-    <li class="diff-incorrect">
+    <div class="diff">
+    <p class="diff-incorrect"><span class="icon">&cross;</span>
     {
       ds.collect {
         case Diff.Removed(from, to) => <span class="diff-removed">{l.slice(from, to).mkString(" ")} </span>
         case Diff.Same(from, to, _, _) => <span class="diff-same">{l.slice(from, to).mkString(" ")} </span>
       }
     }
-    </li>
-    <li class="diff-correct">
+    </p>
+    <p class="diff-correct"><span class="icon">&check;</span>
     {
       ds.collect {
         case Diff.Added(from, to) => <span class="diff-added">{r.slice(from, to).mkString(" ")} </span>
         case Diff.Same(from, to, _, _) => <span class="diff-same">{l.slice(from, to).mkString(" ")} </span>
       }
     }
-    </li>
-    </ul>
+    </p>
+    </div>
   }
 
   @html

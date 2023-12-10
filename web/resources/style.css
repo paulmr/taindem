@@ -32,13 +32,14 @@
     border: 1px solid red;
     margin-bottom: 1em;
     border-radius: 5px;
+    padding: 1em;
 }
 
 .message-answer {
     background-color: purple;
     color: white;
-    padding: 1em;
     border-radius: 5px;
+    padding: 1em;
 }
 
 #user-input {
@@ -54,8 +55,12 @@ ul.diff {
     list-style: none;
 }
 
-li.diff-incorrect {
-    opacity: 0.5;
+.diff-correct .icon {
+    color: green;
+}
+
+.diff-incorrect .icon {
+    color: red;
 }
 
 .diff-added {

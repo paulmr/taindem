@@ -67,9 +67,10 @@ object Taindem {
          |don't need to correct slight style changes or things like
          |that. Answer in the form of a Json object, which contains
          |two fields. It should always contain the first field, which
-         |is called "correction". This field will contain the
-         |corrected version of my sentence. The field "answer" should
-         |contain your normal response.
+         |is called "correction". This field will contain the whole
+         |sentence that you have been given, but in its corrected
+         |form. The field "answer" should contain your normal
+         |response.
          """.stripMargin
     )
   )

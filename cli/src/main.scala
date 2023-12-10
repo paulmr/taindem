@@ -46,7 +46,7 @@ object Cli {
               return
             case Right(answer) =>
               for(correction <- answer.correction; diff <- answer.diff) {
-                println(s"${fansi.Color.Red("Correction")}: ${diffToString(diff, answer.question, correction)}")
+                println(s"${fansi.Color.Red("Correction")}:\n${diffToString(diff, answer.question, correction)}")
               }
               println(s"${fansi.Color.Green("Answer")}: ${answer.answer}")
           }
@@ -58,7 +58,6 @@ object Cli {
     language: String = "French",
     temperature: Option[Double] = None
   ) = {
-    println(diffToString(Diff("Ça vas?", "Ça va ?"), "Ça vas?", "Ça va ?"))
     val apiKey = Option(System.getenv("GPT_API_KEY")).get
     val gpt = new GPTClientRequests(apiKey)
     val taindem = Taindem(gpt, temperature = temperature, language = language)

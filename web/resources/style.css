@@ -55,7 +55,7 @@ ul.diff {
 }
 
 li.diff-incorrect {
-    opacity: 0.5%;
+    opacity: 0.5;
 }
 
 .diff-added {

@@ -15,10 +15,6 @@ object TaindemWebApp {
   case class UserMessage(message: String) extends ConversationPoint
 
   val messageLog = Vars.empty[ConversationPoint]
-    // Vars[ConversationPoint](
-    //   UserMessage("Hi, how is you?"),
-    //   RobotResponse(TaindemAnswer(correction = "Hi, how are you?", answer = "I am fine thanks, you?"))
-    // )
 
   @html
   def renderDiffs(ds: List[Diff.Difference], l: String, r: String) =

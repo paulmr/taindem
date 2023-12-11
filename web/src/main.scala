@@ -64,7 +64,7 @@ object TaindemWebApp {
     }
     </div>
     <div id="user-input">
-    <input id="user-input-txt" type="text" onkeypress= { ev:Event =>
+    <input id="user-input-txt" value="" type="text" onkeypress= { ev:Event =>
       val target = ev.target.asInstanceOf[HTMLInputElement]
       if(ev.asInstanceOf[KeyboardEvent].key == "Enter") {
         submitCB(target.value)

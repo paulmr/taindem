@@ -13,26 +13,6 @@ trait BasicJSModule extends BasicModule with ScalaJSModule {
   def scalaJSVersion = "1.14.0"
 }
 
-/**
-  *  this module is code taken from
-  *  https://github.com/guillaumebort/scalalibdiff , which is MIT
-  *  licensed and so re-distributing and modifying it here should be
-  *  fine... if not, let me know!  (for which, thank you kindly!)
-  *
-  *  The reason I have included it here rather than depending on it is
-  *  because it isn't published for scala 2.13, and doesn't seem like
-  *  an active project.
-  *
-  *  The `correct` solution would probably be to just republish it
-  *  under a different org, updated for scala 2.13.
-  */
-object scalalibdiff extends Module {
-  trait ScalaLibDiffModule extends BasicModule with PlatformScalaModule
-
-  object jvm extends ScalaLibDiffModule
-  object js extends ScalaLibDiffModule with BasicJSModule
-}
-
 object lib extends Module {
   val circeVersion = "0.14.1"
 
@@ -42,6 +22,7 @@ object lib extends Module {
       ivy"io.circe::circe-core::${circeVersion}",
       ivy"io.circe::circe-parser::${circeVersion}",
       ivy"io.circe::circe-generic::${circeVersion}",
+      ivy"com.github.guillaumebort::scalalibdiff::0.1.0", // currently doesn't exist for scala 2.13 -> need to publish locally
     )
 
     object test extends ScalaTests with TestModule.Utest {
@@ -49,12 +30,8 @@ object lib extends Module {
     }
 
   }
-  object jvm extends LibModule {
-    def moduleDeps = Seq(scalalibdiff.jvm)
-  }
-  object js extends LibModule with BasicJSModule {
-    def moduleDeps = Seq(scalalibdiff.js)
-  }
+  object jvm extends LibModule
+  object js extends LibModule with BasicJSModule
 }
 
 object cli extends BasicModule {

@@ -61,3 +61,10 @@ object web extends BasicJSModule {
     PathRef(T.dest)
   }
 }
+
+object bot extends BasicModule {
+  override def moduleDeps = Seq(lib.jvm)
+
+  def ivyDeps = Agg(ivy"com.bot4s::telegram-core:5.7.1")
+
+}

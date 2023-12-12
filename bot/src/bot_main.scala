@@ -6,24 +6,26 @@ import taindem.client.GPTClient
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import sttp.client3.HttpClientFutureBackend
 
 import scalaj.http._
 import scala.concurrent.Await
+import sttp.client3.logging.Logger
 
-class GPTClientScalaJ(val apiKey: String)(implicit val ec: ExecutionContext) extends GPTClient {
-  protected def sendRequestBase(url: String, headers: Map[String,String], body: String):
-      Future[GPTClient.GPTResponse[Array[Byte]]] = Future {
+// class GPTClientScalaJ(val apiKey: String)(implicit val ec: ExecutionContext) extends GPTClient {
+//   protected def sendRequestBase(url: String, headers: Map[String,String], body: String):
+//       Future[GPTClient.GPTResponse[Array[Byte]]] = Future {
 
-    val response = Http(url)
-      .method("POST")
-      .headers(headers)
-      .postData(body)
-      .asBytes
+//     val response = Http(url)
+//       .method("POST")
+//       .headers(headers)
+//       .postData(body)
+//       .asBytes
 
-    if(response.isSuccess) Right(response.body)
-    else Left(response.statusLine)
-  }
-}
+//     if(response.isSuccess) Right(response.body)
+//     else Left(response.statusLine)
+//   }
+// }
 
 object TaindemBotMain {
 
@@ -32,7 +34,8 @@ object TaindemBotMain {
 
     val botToken = Option(System.getenv("TGRAM_BOT_KEY")).get
     val gptApiKey = Option(System.getenv("GPT_API_KEY")).get
-    val gpt = new GPTClientScalaJ(gptApiKey)
+    implicit val httpBackend = HttpClientFutureBackend()
+    val gpt = new GPTClient(gptApiKey, httpBackend)
     val bot = new TaindemBot(botToken, gpt)
 
     println("Starting bot")

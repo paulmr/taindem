@@ -22,6 +22,7 @@ object lib extends Module {
       ivy"io.circe::circe-core::${circeVersion}",
       ivy"io.circe::circe-parser::${circeVersion}",
       ivy"io.circe::circe-generic::${circeVersion}",
+      ivy"com.softwaremill.sttp.client3::core::3.9.1",
       ivy"com.github.guillaumebort::scalalibdiff::0.1.0", // currently doesn't exist for scala 2.13 -> need to publish locally
     )
 
@@ -65,6 +66,10 @@ object web extends BasicJSModule {
 object bot extends BasicModule {
   override def moduleDeps = Seq(lib.jvm)
 
-  def ivyDeps = Agg(ivy"com.bot4s::telegram-core:5.7.1")
+  def ivyDeps = Agg(
+    // ivy"biz.enef::slogging:0.6.2",
+    // ivy"biz.enef::slogging-slf4j:0.6.2",
+    ivy"com.bot4s::telegram-core:5.7.1",
+  )
 
 }

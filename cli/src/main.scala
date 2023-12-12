@@ -6,6 +6,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scalalibdiff.Diff
 import java.io.FileOutputStream
+import taindem.client.GPTClient
+import sttp.client3.HttpClientFutureBackend
 
 object Cli {
 
@@ -43,7 +45,7 @@ object Cli {
         case any if any.startsWith(":") =>
           println(s"didn't understand command: ${any.drop(1)}")
         case _ =>
-          Await.result(t.submitMessageWithAudio(input), timeout) match {
+          Await.result(t.submitMessage(input, useAudio = false), timeout) match {
             case Left(err) =>
               println(s"Error: $err")
               return
@@ -72,7 +74,7 @@ object Cli {
     temperature: Option[Double] = None
   ) = {
     val apiKey = Option(System.getenv("GPT_API_KEY")).get
-    val gpt = new GPTClientRequests(apiKey)
+    val gpt = new GPTClient(apiKey, HttpClientFutureBackend())
     val taindem = Taindem(gpt, temperature = temperature, language = language)
     mainLoop(taindem, timeout.seconds)
   }

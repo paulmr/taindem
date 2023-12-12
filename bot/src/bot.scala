@@ -4,7 +4,7 @@ import taindem.Taindem
 import com.bot4s.telegram.future.{Polling, TelegramBot}
 import com.bot4s.telegram.api.RequestHandler
 import scala.concurrent.Future
-import com.bot4s.telegram.clients.ScalajHttpClient
+import com.bot4s.telegram.clients.FutureSttpClient
 import com.bot4s.telegram.models.Message
 import taindem.client.GPTClient
 import com.bot4s.telegram.models.ChatId
@@ -20,10 +20,12 @@ import com.bot4s.telegram.api.declarative.Commands
 import com.bot4s.telegram.api.ChatActions
 import com.bot4s.telegram.models.InputFile
 import com.bot4s.telegram.methods.SendVoice
+import sttp.client3.HttpClientFutureBackend
+import sttp.client3.SttpBackend
 
 case class UserState(t: Taindem, useAudio: Boolean = false)
 
-class TaindemBot(token: String, gpt: GPTClient) extends TelegramBot
+class TaindemBot(token: String, gpt: GPTClient)(implicit backend: SttpBackend[Future, Any]) extends TelegramBot
     with Polling
     with Messages[Future]
     with Commands[Future]
@@ -31,7 +33,7 @@ class TaindemBot(token: String, gpt: GPTClient) extends TelegramBot
 
   private val users = collection.mutable.Map.empty[ChatId, UserState]
 
-  override val client: RequestHandler[Future] = new ScalajHttpClient(token)
+  override val client: RequestHandler[Future] = new FutureSttpClient(token)
 
   private def getOrSetUserState(implicit msg: Message): UserState = users.get(msg.chat.chatId) match {
     case Some(st) => st

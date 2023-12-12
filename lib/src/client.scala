@@ -11,12 +11,11 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 import GPTClient._
+import sttp.client3._
+import sttp.model.StatusCode
 
-trait GPTClient {
+class GPTClient(val apiKey: String, sttpBackend: SttpBackend[Future, Any])(implicit ec: ExecutionContext) {
 
-  implicit protected val ec: ExecutionContext
-
-  val apiKey: String
   val apiRoot: String = "https://api.openai.com"
 
   private val baseHeaders: Map[String, String] = Map(
@@ -29,19 +28,35 @@ trait GPTClient {
   //    - send a `POST` request to the provided URL with the `body`
   //    and return the response as an `Either` (i.e. `GPTResponse`)
   //    with an error string in left if there was a problem
-  protected def sendRequestBase(url: String, headers: Map[String, String], body: String):
-      Future[GPTResponse[Array[Byte]]]
-
+  protected def sendRequestBase(url: String, headers: Map[String, String], body: Array[Byte]):
+      Future[GPTResponse[Array[Byte]]] =
+    basicRequest
+      .headers(headers)
+      .body(body)
+      .post(uri"$url")
+      .response(asByteArray)
+      .send(sttpBackend)
+      .map(_.body)
 
   private def decodeAs[T : Decoder](json: Json): GPTResponse[T] =
     json.as[T].left.map(_.message)
 
-  private def endpointBytes[In : Encoder](path: String): GPTEndpoint[In, Array[Byte]]  = { in =>
-    sendRequestBase(apiRoot + "/" + path, baseHeaders, in.asJson.toString)
+  private def endpoint[In, Out](path: String)(f: In => GPTRequest => GPTRequest): GPTEndpoint[In, Array[Byte]] = { in =>
+    val uri = uri"${apiRoot + "/" + path}"
+    val req = basicRequest
+      .response(asByteArray)
+      .headers(baseHeaders)
+    f(in)(req)
+      .post(uri)
+      .send(sttpBackend)
+      .map(_.body)
   }
 
+  private def endpointJsonI[In : Encoder](path: String): GPTEndpoint[In, Array[Byte]]  =
+    endpoint(path) { in => req => req.body(in.asJson.toString.getBytes) }
+
   private def endpointJson[In : Encoder, Out : Decoder](path: String): GPTEndpoint[In, Out] =
-    endpointBytes(path).andThen { resFuture =>
+    endpointJsonI(path).andThen { resFuture =>
       resFuture.map { gptRes =>
         gptRes.flatMap { bytes =>
           parse(new String(bytes))
@@ -55,10 +70,11 @@ trait GPTClient {
     }
 
   def completion = endpointJson[CompletionsRequest, CompletionsResponse]("v1/chat/completions")
-  def speech = endpointBytes[SpeechRequest]("v1/audio/speech")
+  def speech = endpointJsonI[SpeechRequest]("v1/audio/speech")
 }
 
 object GPTClient {
   type GPTResponse[T] = Either[String, T]
   type GPTEndpoint[In, Out] = In => Future[GPTResponse[Out]]
+  type GPTRequest = PartialRequest[GPTResponse[Array[Byte]], Any]
 }

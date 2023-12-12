@@ -3,6 +3,7 @@ package taindem.model
 import scalalibdiff.Diff
 import io.circe.generic.JsonCodec
 import io.circe.Json
+import java.io.File
 
 // ==== CHATGPT models
 
@@ -42,6 +43,17 @@ import io.circe.Json
   input: String,
   model: String = "tts-1",
   voice: String = "alloy"
+)
+
+// this request isn't json based
+case class TranscriptionRequest(
+  file: File,
+  model: String = "whisper-1",
+  language: Option[String] = None
+)
+
+@JsonCodec case class TranscriptionResponse(
+  text: String
 )
 
 // TAINDEM models

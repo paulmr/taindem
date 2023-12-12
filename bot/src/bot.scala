@@ -20,8 +20,9 @@ import com.bot4s.telegram.api.declarative.Commands
 import com.bot4s.telegram.api.ChatActions
 import com.bot4s.telegram.models.InputFile
 import com.bot4s.telegram.methods.SendVoice
-import sttp.client3.HttpClientFutureBackend
-import sttp.client3.SttpBackend
+import sttp.client3._
+import com.bot4s.telegram.methods.GetFile
+import taindem.model.TranscriptionRequest
 
 case class UserState(t: Taindem, useAudio: Boolean = false)
 
@@ -90,7 +91,52 @@ class TaindemBot(token: String, gpt: GPTClient)(implicit backend: SttpBackend[Fu
     ).map(_ => ())
   }
 
+
   onMessage { implicit msg =>
+    if(msg.text.isDefined) handleTextMessage(msg)
+    else if(msg.voice.isDefined) handleVoiceMessage(msg)
+    else Future.successful(())
+  }
+
+  def sendTaindemAnswer(answer: TaindemAnswer)(implicit msg: Message): Future[Unit] =
+    for {
+      _ <- getCorrection(answer).map(c => request(SendMessage(chatId = msg.chat.chatId, replyToMessageId = Some(msg.messageId), text = c, parseMode = Some(ParseMode.HTML)))).getOrElse(Future.successful(()))
+      _ <- answer.audio match {
+        case Some(audio) =>
+          request(SendVoice(msg.source, InputFile("answer.mp3", audio)))
+        case None =>
+          request(SendMessage(chatId = msg.chat.chatId, text = answer.answer, parseMode = Some(ParseMode.HTML)))
+      }
+    } yield ()
+
+  def handleVoiceMessage(implicit msg: Message): Future[Unit] = // reply("voice not supported yet").map(_ => ())
+    msg.voice match {
+      case None => Future.successful(())
+      case Some(v) =>
+        for {
+          file <- request(GetFile(v.fileId))
+          _ <- uploadingAudio
+          data <- basicRequest
+          .get(uri"https://api.telegram.org/file/bot${token}/${file.filePath.get}")
+          .response(asFileAlways(new java.io.File(s"voice-${v.fileId}.ogg")))
+          .send(backend)
+          body = data.body
+          _ = println(s"downloaded: file($body)")
+          tr <- gpt.transcription(TranscriptionRequest(file = body, language = Some(getOrSetUserState.t.language)))
+          _ = body.delete()
+          _ <- tr match {
+            case Left(err) => reply(s"error: $err")
+            case Right(res) =>
+              getOrSetUserState.t.submitMessage(res.text, getOrSetUserState.useAudio).flatMap {
+                case Left(err) => reply(s"Error: $err")
+                case Right(answer) =>
+                  sendTaindemAnswer(answer)
+              }
+          }
+        } yield ()
+    }
+
+  def handleTextMessage(implicit msg: Message): Future[Unit] =
     msg.text match {
       case None => Future(()) // ignore non-text messages
       case Some(text) if text.startsWith("/") => Future(()) // ignore commands
@@ -108,17 +154,8 @@ class TaindemBot(token: String, gpt: GPTClient)(implicit backend: SttpBackend[Fu
                 )
               )
             case Right(answer) =>
-              for {
-                _ <- getCorrection(answer).map(c => request(SendMessage(chatId = msg.chat.chatId, replyToMessageId = Some(msg.messageId), text = c, parseMode = Some(ParseMode.HTML)))).getOrElse(Future.successful(()))
-                _ <- answer.audio match {
-                  case Some(audio) =>
-                    request(SendVoice(msg.source, InputFile("answer.mp3", audio)))
-                  case None =>
-                    request(SendMessage(chatId = msg.chat.chatId, text = answer.answer, parseMode = Some(ParseMode.HTML)))
-                }
-              } yield ()
+              sendTaindemAnswer(answer)
           }
         }
     }
-  }
 }

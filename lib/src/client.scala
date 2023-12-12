@@ -19,7 +19,6 @@ class GPTClient(val apiKey: String, sttpBackend: SttpBackend[Future, Any])(impli
   val apiRoot: String = "https://api.openai.com"
 
   private val baseHeaders: Map[String, String] = Map(
-    "Content-type" -> "application/json",
     "Authorization" -> s"Bearer $apiKey"
   )
 
@@ -41,19 +40,23 @@ class GPTClient(val apiKey: String, sttpBackend: SttpBackend[Future, Any])(impli
   private def decodeAs[T : Decoder](json: Json): GPTResponse[T] =
     json.as[T].left.map(_.message)
 
-  private def endpoint[In, Out](path: String)(f: In => GPTRequest => GPTRequest): GPTEndpoint[In, Array[Byte]] = { in =>
+  private def endpoint[In](path: String)(f: In => GPTRequest => GPTRequest): GPTEndpoint[In, Array[Byte]] = { in =>
     val uri = uri"${apiRoot + "/" + path}"
     val req = basicRequest
       .response(asByteArray)
       .headers(baseHeaders)
-    f(in)(req)
+    val req2 = f(in)(req)
+    println(s"uri=${uri} ;; req2 = ${req2}")
+    req2
       .post(uri)
       .send(sttpBackend)
       .map(_.body)
   }
 
   private def endpointJsonI[In : Encoder](path: String): GPTEndpoint[In, Array[Byte]]  =
-    endpoint(path) { in => req => req.body(in.asJson.toString.getBytes) }
+    endpoint(path) { in => req =>
+      req.header("Content-Type", "application/json").body(in.asJson.toString.getBytes)
+    }
 
   private def endpointJson[In : Encoder, Out : Decoder](path: String): GPTEndpoint[In, Out] =
     endpointJsonI(path).andThen { resFuture =>
@@ -71,6 +74,17 @@ class GPTClient(val apiKey: String, sttpBackend: SttpBackend[Future, Any])(impli
 
   def completion = endpointJson[CompletionsRequest, CompletionsResponse]("v1/chat/completions")
   def speech = endpointJsonI[SpeechRequest]("v1/audio/speech")
+  def transcription = endpoint[TranscriptionRequest]("v1/audio/transcriptions") {
+    treq => httpReq => {
+      val res = httpReq.multipartBody(
+        multipart("model", treq.model),
+        multipartFile("file", treq.file),
+      )
+      res
+    }
+  }.andThen(_.map(_.flatMap { bytes =>
+    parse(new String(bytes)).flatMap(_.as[TranscriptionResponse]).left.map(_.getMessage)
+  }))
 }
 
 object GPTClient {

@@ -53,8 +53,14 @@ class TaindemBot(token: String, gpt: GPTClient) extends TelegramBot
         users(msg.chat.chatId) = new Taindem(gpt, language = lang)
         request(SendMessage(chatId = msg.chat.chatId, text = s"Language changed to $lang"))
           .map(_ => ())
-      }).getOrElse(Future.successful(()))
+      }).getOrElse(reply("Please give me a language to change to as an argument.").map(_ => ()))
     }
+  }
+
+  onCommand("start") { implicit msg =>
+    reply("Hi there! I will chat to in a language of your choice, " +
+      "and correct you. Use /lang to change language, or /reset " +
+      "to tell me to forget the history of our conversation.").map(_ => ())
   }
 
   onMessage { msg =>

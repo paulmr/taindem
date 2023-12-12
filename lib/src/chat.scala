@@ -20,7 +20,7 @@ case class Taindem(
 
   def reset() = history = Taindem.startPrompt(language)
 
-  def submitMessage(msgText: String)(implicit ec: ExecutionContext): Future[GPTResponse[TaindemAnswer]] = {
+  def submitMessage(msgText: String, useAudio: Boolean = false)(implicit ec: ExecutionContext): Future[GPTResponse[TaindemAnswer]] = {
     val userMsg = Message("user", msgText)
     addMessage(userMsg)
     val req = CompletionsRequest(
@@ -29,7 +29,7 @@ case class Taindem(
       response_format = Some(ResponseFormat("json_object")),
       temperature = temperature
     )
-    gpt.completion(req).map { res =>
+    val textResult: Future[GPTResponse[TaindemAnswer]] = gpt.completion(req).map { res =>
       res.flatMap { completions =>
         val baseMessage = completions.choices.head.message
         addMessage(baseMessage)
@@ -39,14 +39,24 @@ case class Taindem(
             val diff = for(correction <- baseAnswer.correction) yield Diff(
               msgText.split("\\s+").toSeq, correction.split("\\s+").toSeq)
             TaindemAnswer(correction = baseAnswer.correction.filter(_ != msgText), // remove if no changes
-              answer = baseAnswer.answer, question = msgText, diff = diff)
+              answer = baseAnswer.answer, question = msgText, diff = diff, audio = None)
           }
           .left.map(_.getMessage())
           .orElse[String, TaindemAnswer](
             Right(TaindemAnswer(correction = None, answer = baseMessage.content,
-              question = msgText, diff = None)))
+              question = msgText, diff = None, audio = None)))
       }
     }
+    if(useAudio) {
+      textResult.flatMap {
+        case Right(answer) =>
+          println("Requesting speech ...")
+          gpt.speech(SpeechRequest(answer.answer)).map { audioF =>
+            audioF.map(audio => answer.copy(audio = Some(audio)))
+          }
+        case any => Future.successful(any)
+      }
+    } else textResult
   }
 
   def getHistory = history.toSeq

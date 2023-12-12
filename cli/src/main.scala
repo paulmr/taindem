@@ -5,6 +5,7 @@ import taindem.model._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scalalibdiff.Diff
+import java.io.FileOutputStream
 
 object Cli {
 
@@ -42,7 +43,7 @@ object Cli {
         case any if any.startsWith(":") =>
           println(s"didn't understand command: ${any.drop(1)}")
         case _ =>
-          Await.result(t.submitMessage(input), timeout) match {
+          Await.result(t.submitMessageWithAudio(input), timeout) match {
             case Left(err) =>
               println(s"Error: $err")
               return
@@ -51,6 +52,16 @@ object Cli {
                 println(s"${fansi.Color.Red("Correction")}:\n${diffToString(diff, answer.question, correction)}")
               }
               println(s"${fansi.Color.Green("Answer")}: ${answer.answer}")
+              answer.audio.foreach { bytes =>
+                val fname = "answer.mp3"
+                val out = new FileOutputStream(fname)
+                try {
+                  out.write(bytes)
+                  println(s"Wrote data to: $fname")
+                } finally {
+                  out.close()
+                }
+              }
           }
       }
     }

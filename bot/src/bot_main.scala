@@ -25,8 +25,6 @@ class GPTClientScalaJ(val apiKey: String)(implicit val ec: ExecutionContext) ext
   }
 }
 
-// val statusCode: Int = response.code val body: String = response.body val headers: Map[String, IndexedSeq[String]] = response.headers ```
-
 object TaindemBotMain {
 
   def main(args: Array[String]): Unit = {

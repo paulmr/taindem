@@ -55,6 +55,7 @@ trait GPTClient {
     }
 
   def completion = endpointJson[CompletionsRequest, CompletionsResponse]("v1/chat/completions")
+  def speech = endpointBytes[SpeechRequest]("v1/audio/speech")
 }
 
 object GPTClient {

@@ -38,6 +38,12 @@ import io.circe.Json
   usage: Usage
 )
 
+@JsonCodec case class SpeechRequest(
+  input: String,
+  model: String = "tts-1",
+  voice: String = "alloy"
+)
+
 // TAINDEM models
 
 @JsonCodec case class TaindemAnswerJson(
@@ -49,5 +55,6 @@ case class TaindemAnswer(
   correction: Option[String],
   answer: String,
   question: String,
-  diff: Option[List[Diff.Difference]]
+  diff: Option[List[Diff.Difference]],
+  audio: Option[Array[Byte]] = None
 )

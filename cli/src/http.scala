@@ -7,9 +7,9 @@ import scala.concurrent.Future
 class GPTClientRequests(val apiKey: String)(implicit val ec: ExecutionContext) extends GPTClient {
 
   def sendRequestBase(url: String, headers: Map[String, String], body: String):
-      Future[GPTClient.GPTResponse[String]] = Future {
+      Future[GPTClient.GPTResponse[Array[Byte]]] = Future {
     val res = requests.post(url, headers = headers, data = body.toString)
-    if(res.statusCode == 200) Right(res.text()) else Left(res.statusMessage)
+    if(res.statusCode == 200) Right(res.bytes) else Left(res.statusMessage)
   }
 
 }

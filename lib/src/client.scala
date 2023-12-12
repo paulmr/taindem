@@ -30,24 +30,31 @@ trait GPTClient {
   //    and return the response as an `Either` (i.e. `GPTResponse`)
   //    with an error string in left if there was a problem
   protected def sendRequestBase(url: String, headers: Map[String, String], body: String):
-      Future[GPTResponse[String]]
+      Future[GPTResponse[Array[Byte]]]
 
-  protected def sendRequest(url: String, body: Json): Future[GPTResponse[Json]] =
-    sendRequestBase(url, baseHeaders, body.toString).map { res =>
-      res.flatMap(src => parse(src).left.map(_.message))
-    }
 
   private def decodeAs[T : Decoder](json: Json): GPTResponse[T] =
     json.as[T].left.map(_.message)
 
-  private def endpoint[In : Encoder, Out : Decoder](path: String): GPTEndpoint[In, Out]  = { in =>
-    sendRequest(apiRoot + "/" + path, in.asJson).map { res =>
-      res.flatMap { json => decodeAs[Out](json) }
-    }
+  private def endpointBytes[In : Encoder](path: String): GPTEndpoint[In, Array[Byte]]  = { in =>
+    sendRequestBase(apiRoot + "/" + path, baseHeaders, in.asJson.toString)
   }
 
-  def completion = endpoint[CompletionsRequest, CompletionsResponse]("v1/chat/completions")
+  private def endpointJson[In : Encoder, Out : Decoder](path: String): GPTEndpoint[In, Out] =
+    endpointBytes(path).andThen { resFuture =>
+      resFuture.map { gptRes =>
+        gptRes.flatMap { bytes =>
+          parse(new String(bytes))
+            .left
+            .map(_.message)
+            .flatMap { json =>
+              decodeAs[Out](json)
+            }
+        }
+      }
+    }
 
+  def completion = endpointJson[CompletionsRequest, CompletionsResponse]("v1/chat/completions")
 }
 
 object GPTClient {

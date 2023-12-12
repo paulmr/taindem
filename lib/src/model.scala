@@ -4,6 +4,8 @@ import scalalibdiff.Diff
 import io.circe.generic.JsonCodec
 import io.circe.Json
 
+// ==== CHATGPT models
+
 @JsonCodec case class Message(role: String, content: String)
 @JsonCodec case class CompletionsRequest(
   messages: Seq[Message],
@@ -35,6 +37,8 @@ import io.circe.Json
   `object`: String,
   usage: Usage
 )
+
+// TAINDEM models
 
 @JsonCodec case class TaindemAnswerJson(
   correction: Option[String],

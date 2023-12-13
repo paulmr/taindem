@@ -130,15 +130,19 @@ class TaindemBot(token: String, gpt: GPTClient)(implicit backend: SttpBackend[Fu
           .get(uri"https://api.telegram.org/file/bot${token}/${file.filePath.get}")
           .response(asFileAlways(new java.io.File(s"voice-${v.fileId}.ogg")))
           .send(backend)
-          body = data.body
-          _ = println(s"downloaded: file($body)")
-          tr <- gpt.transcription(TranscriptionRequest(file = body, language = Some(getOrSetUserState.t.language)))
-          _ = body.delete()
+          fname = data.body
+          _ = logger.debug(s"downloaded: file($fname)")
+          tr <- gpt.transcription(TranscriptionRequest(file = fname, language = Some(getOrSetUserState.t.language)))
+          _ = fname.delete()
           _ <- tr match {
-            case Left(err) => reply(s"error: $err")
+            case Left(err) =>
+              logger.info(s"error: $err")
+              reply(s"error: $err")
             case Right(res) =>
               getOrSetUserState.t.submitMessage(res.text, getOrSetUserState.useAudio).flatMap {
-                case Left(err) => reply(s"Error: $err")
+                case Left(err) =>
+                  logger.info(s"error: $err")
+                  reply(s"Error: $err")
                 case Right(answer) =>
                   sendTaindemAnswer(answer)
               }
@@ -156,7 +160,7 @@ class TaindemBot(token: String, gpt: GPTClient)(implicit backend: SttpBackend[Fu
           val req = u.t.submitMessage(text, u.useAudio)
           req.map {
             case Left(errMsg) =>
-              println(s"Error: $errMsg")
+              logger.info(s"Error: $errMsg")
               request(
                 SendMessage(
                   chatId = msg.chat.chatId,

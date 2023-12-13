@@ -10,7 +10,7 @@ import sttp.client3.HttpClientFutureBackend
 
 import scalaj.http._
 import scala.concurrent.Await
-import sttp.client3.logging.Logger
+import com.typesafe.scalalogging.StrictLogging
 
 // class GPTClientScalaJ(val apiKey: String)(implicit val ec: ExecutionContext) extends GPTClient {
 //   protected def sendRequestBase(url: String, headers: Map[String,String], body: String):
@@ -27,7 +27,7 @@ import sttp.client3.logging.Logger
 //   }
 // }
 
-object TaindemBotMain {
+object TaindemBotMain extends StrictLogging {
 
   def main(args: Array[String]): Unit = {
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
@@ -38,11 +38,11 @@ object TaindemBotMain {
     val gpt = new GPTClient(gptApiKey, httpBackend)
     val bot = new TaindemBot(botToken, gpt)
 
-    println("Starting bot")
+    logger.info("Starting bot")
     val res = bot.run()
     println("Press [ENTER] to shutdown the bot, it may take a few seconds...")
     scala.io.StdIn.readLine()
-    println("Shutting down...")
+    logger.info("Shutting down...")
     bot.shutdown()
     Await.ready(res, Duration.Inf)
     println("Complete")

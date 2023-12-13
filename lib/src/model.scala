@@ -41,8 +41,8 @@ import java.io.File
 
 @JsonCodec case class SpeechRequest(
   input: String,
-  model: String = "tts-1",
-  voice: String = "alloy"
+  model: String = "tts-1-hd",
+  voice: String = "onyx"
 )
 
 // this request isn't json based

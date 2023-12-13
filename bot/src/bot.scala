@@ -84,12 +84,22 @@ class TaindemBot(token: String, gpt: GPTClient)(implicit backend: SttpBackend[Fu
       "Use /audio to toggle creation of audio responses.").map(_ => ())
   }
 
-  onCommand("audio") { implicit msg =>
-    withUserState(u => u.copy(useAudio = !u.useAudio))
+  onCommand("audio") { implicit msg => withArgs { args =>
+    withUserState { u =>
+      val cmd = args.headOption.getOrElse("toggle")
+      val update = cmd match {
+        case "on" => true
+        case "off" => false
+        case _ => !u.useAudio
+      }
+      u.copy(useAudio = update)
+    }
     reply(
-      (if(getOrSetUserState.useAudio) "Enabling" else "Disabling") + " audio messages"
+      (if(getOrSetUserState.useAudio)
+        "Enabling audio messages. Remember (as per ChatGPT policy I have to remind you!) this is not a real person's voice ! It's AI."
+      else "Disabling audio")
     ).map(_ => ())
-  }
+  } }
 
 
   onMessage { implicit msg =>

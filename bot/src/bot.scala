@@ -67,6 +67,10 @@ class TaindemBot(
       s"✗ ${leftResponse}\n✓ ${rightResponse}\n\n\n"
     }
 
+  onCommand("ping") { implicit msg =>
+    reply("pong").map(_ => ())
+  }
+
   onCommand("reset") { implicit msg =>
     withUserState(_.copy(t = new Taindem(gpt)))
     reply("Chat history reset").map(_ => ())

@@ -6,6 +6,8 @@ import org.scalajs.dom._
 import org.lrng.binding.html
 import scala.scalajs.js.annotation._
 import scalalibdiff.Diff
+import taindem.client.GPTClient
+import sttp.client3.FetchBackend
 
 @JSExportTopLevel("taindem")
 object TaindemWebApp {
@@ -106,7 +108,7 @@ object TaindemWebApp {
     val apiKey = findApiKey()
     console.log(s"using api key: ${apiKey}")
     val lang = optionalQueryParam("lang").getOrElse("French")
-    val gpt = new GPTClientFetch(apiKey)
+    val gpt = new GPTClient(apiKey, FetchBackend())
     val t = new taindem.Taindem(gpt, language = lang)
 
     def inputElement = document.getElementById("user-input-txt").asInstanceOf[HTMLInputElement]

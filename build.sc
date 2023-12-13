@@ -23,6 +23,7 @@ object lib extends Module {
       ivy"io.circe::circe-parser::${circeVersion}",
       ivy"io.circe::circe-generic::${circeVersion}",
       ivy"com.softwaremill.sttp.client3::core::3.9.1",
+      ivy"org.slf4j:slf4j-api:2.0.9",
       ivy"com.github.guillaumebort::scalalibdiff::0.1.0", // currently doesn't exist for scala 2.13 -> need to publish locally
     )
 
@@ -69,6 +70,7 @@ object bot extends BasicModule {
   def ivyDeps = Agg(
     // ivy"biz.enef::slogging:0.6.2",
     // ivy"biz.enef::slogging-slf4j:0.6.2",
+    ivy"com.lihaoyi::mainargs:0.5.4",
     ivy"com.bot4s::telegram-core:5.7.1",
   )
 

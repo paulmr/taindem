@@ -29,14 +29,15 @@ import com.typesafe.scalalogging.StrictLogging
 
 object TaindemBotMain extends StrictLogging {
 
-  def main(args: Array[String]): Unit = {
+  @mainargs.main
+  def run(audioDefault: Boolean = false, audioVoice: String = "alloy"): Unit = {
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
     val botToken = Option(System.getenv("TGRAM_BOT_KEY")).get
     val gptApiKey = Option(System.getenv("GPT_API_KEY")).get
     implicit val httpBackend = HttpClientFutureBackend()
     val gpt = new GPTClient(gptApiKey, httpBackend)
-    val bot = new TaindemBot(botToken, gpt)
+    val bot = new TaindemBot(botToken, gpt, audioDefault, audioVoice)
 
     logger.info("Starting bot")
     val res = bot.run()
@@ -47,4 +48,7 @@ object TaindemBotMain extends StrictLogging {
     Await.ready(res, Duration.Inf)
     println("Complete")
   }
+
+  def main(args: Array[String]): Unit =
+    mainargs.ParserForMethods(this).runOrExit(args.toIndexedSeq)
 }

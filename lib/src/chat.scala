@@ -14,13 +14,15 @@ case class Taindem(
   language: String = "French",
   temperature: Option[Double] = None) {
 
+  val logger = org.slf4j.LoggerFactory.getLogger(getClass().getName())
+
   private var history: List[Message] = Taindem.startPrompt(language)
 
   private def addMessage(m: Message) = history = history :+ m
 
   def reset() = history = Taindem.startPrompt(language)
 
-  def submitMessage(msgText: String, useAudio: Boolean = false)(implicit ec: ExecutionContext): Future[GPTResponse[TaindemAnswer]] = {
+  def submitMessage(msgText: String, useAudio: Boolean = false, audioVoice: String = "alloy")(implicit ec: ExecutionContext): Future[GPTResponse[TaindemAnswer]] = {
     val userMsg = Message("user", msgText)
     addMessage(userMsg)
     val req = CompletionsRequest(
@@ -50,8 +52,8 @@ case class Taindem(
     if(useAudio) {
       textResult.flatMap {
         case Right(answer) =>
-          println("Requesting speech ...")
-          gpt.speech(SpeechRequest(answer.answer)).map { audioF =>
+          logger.debug("Requesting speech ...")
+          gpt.speech(SpeechRequest(answer.answer, voice = audioVoice)).map { audioF =>
             audioF.map(audio => answer.copy(audio = Some(audio)))
           }
         case any => Future.successful(any)

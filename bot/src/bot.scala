@@ -26,7 +26,12 @@ import taindem.model.TranscriptionRequest
 
 case class UserState(t: Taindem, useAudio: Boolean = false)
 
-class TaindemBot(token: String, gpt: GPTClient)(implicit backend: SttpBackend[Future, Any]) extends TelegramBot
+class TaindemBot(
+  token: String,
+  gpt: GPTClient,
+  audioEnabledByDefault: Boolean = false,
+  audioVoice: String = "alloy",
+)(implicit backend: SttpBackend[Future, Any]) extends TelegramBot
     with Polling
     with Messages[Future]
     with Commands[Future]
@@ -39,7 +44,7 @@ class TaindemBot(token: String, gpt: GPTClient)(implicit backend: SttpBackend[Fu
   private def getOrSetUserState(implicit msg: Message): UserState = users.get(msg.chat.chatId) match {
     case Some(st) => st
     case None =>
-      val newSt = UserState(new Taindem(gpt))
+      val newSt = UserState(new Taindem(gpt), useAudio = audioEnabledByDefault)
       users(msg.chat.chatId) = newSt
       newSt
   }

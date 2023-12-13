@@ -37,7 +37,7 @@ object TaindemBotMain extends StrictLogging {
     val gptApiKey = Option(System.getenv("GPT_API_KEY")).get
     implicit val httpBackend = HttpClientFutureBackend()
     val gpt = new GPTClient(gptApiKey, httpBackend)
-    val bot = new TaindemBot(botToken, gpt, audioDefault, audioVoice)
+    val bot = new TaindemBot(botToken, gpt, audioEnabledByDefault = audioDefault, audioVoice = audioVoice)
 
     logger.info("Starting bot")
     val res = bot.run()

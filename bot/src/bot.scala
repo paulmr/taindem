@@ -75,7 +75,7 @@ class TaindemBot(
   onCommand("lang") { implicit msg =>
     withArgs { args =>
       (for(lang <- args.headOption) yield {
-        users(msg.chat.chatId) = UserState(new Taindem(gpt, language = lang))
+        withUserState(u => u.copy(t = new Taindem(gpt, language = lang)))
         request(SendMessage(chatId = msg.chat.chatId, text = s"Language changed to $lang"))
           .map(_ => ())
       }).getOrElse(reply("Please give me a language to change to as an argument.").map(_ => ()))
@@ -160,9 +160,9 @@ class TaindemBot(
       case None => Future(()) // ignore non-text messages
       case Some(text) if text.startsWith("/") => Future(()) // ignore commands
       case Some(text) =>
-        val u = users.getOrElseUpdate(msg.chat.chatId, UserState(Taindem(gpt)))
+        val u = getOrSetUserState
         (if(u.useAudio) uploadingAudio else typing).flatMap { _ =>
-          val req = u.t.submitMessage(text, u.useAudio)
+          val req = u.t.submitMessage(text, useAudio = u.useAudio, audioVoice = audioVoice)
           req.map {
             case Left(errMsg) =>
               logger.info(s"Error: $errMsg")

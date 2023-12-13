@@ -16,6 +16,8 @@ import sttp.model.StatusCode
 
 class GPTClient(val apiKey: String, sttpBackend: SttpBackend[Future, Any])(implicit ec: ExecutionContext) {
 
+  val logger = org.slf4j.LoggerFactory.getLogger(getClass().getName())
+
   val apiRoot: String = "https://api.openai.com"
 
   private val baseHeaders: Map[String, String] = Map(
@@ -46,7 +48,7 @@ class GPTClient(val apiKey: String, sttpBackend: SttpBackend[Future, Any])(impli
       .response(asByteArray)
       .headers(baseHeaders)
     val req2 = f(in)(req)
-    println(s"uri=${uri} ;; req2 = ${req2}")
+    logger.debug(s"uri=${uri} ;; req2 = ${req2}")
     req2
       .post(uri)
       .send(sttpBackend)

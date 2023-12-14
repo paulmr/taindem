@@ -73,7 +73,16 @@ class TaindemBot(
 
   onCommand("ping") { implicit msg =>
     val u = getOrSetUserState
-    reply(s"pong; audio=${u.useAudio} ; corrections=${u.showCorrections} ; voice=${u.audioVoice}").discard
+    reply(
+      List(
+        "pong",
+        s"*audio*: ${u.useAudio}",
+        s"*corrections*: ${u.showCorrections}",
+        s"*voice*: ${u.audioVoice}",
+        s"*language*: ${u.t.language}"
+      ).mkString("\n"),
+      Some(ParseMode.Markdown)
+    ).discard
   }
 
   onCommand("reset") { implicit msg =>

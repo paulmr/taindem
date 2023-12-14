@@ -15,22 +15,21 @@ import scalalibdiff.Diff
 import com.bot4s.telegram.methods.ParseMode
 import com.bot4s.telegram.methods.SendChatAction
 import com.bot4s.telegram.methods.ChatAction
-import com.bot4s.telegram.api.declarative.Messages
-import com.bot4s.telegram.api.declarative.Commands
+import com.bot4s.telegram.api.declarative.{Messages, Commands, Args}
 import com.bot4s.telegram.api.ChatActions
 import com.bot4s.telegram.models.InputFile
 import com.bot4s.telegram.methods.SendVoice
 import sttp.client3._
 import com.bot4s.telegram.methods.GetFile
 import taindem.model.TranscriptionRequest
+import java.time.Instant
 
-case class UserState(t: Taindem, useAudio: Boolean = false)
+case class UserState(t: Taindem, useAudio: Boolean = false, audioVoice: String = "alloy", showCorrections: Boolean = true)
 
 class TaindemBot(
   token: String,
   gpt: GPTClient,
   audioEnabledByDefault: Boolean = false,
-  audioVoice: String = "alloy",
 )(implicit backend: SttpBackend[Future, Any]) extends TelegramBot
     with Polling
     with Messages[Future]
@@ -68,7 +67,9 @@ class TaindemBot(
     }
 
   onCommand("ping") { implicit msg =>
-    reply("pong").map(_ => ())
+    val u = getOrSetUserState
+    reply(s"pong; audio=${u.useAudio} ; corrections=${u.showCorrections} ; voice=${u.audioVoice}")
+      .map(_ => ())
   }
 
   onCommand("reset") { implicit msg =>
@@ -93,23 +94,46 @@ class TaindemBot(
       "Use /audio to toggle creation of audio responses.").map(_ => ())
   }
 
-  onCommand("audio") { implicit msg => withArgs { args =>
-    withUserState { u =>
-      val cmd = args.headOption.getOrElse("toggle")
-      val update = cmd match {
-        case "on" => true
-        case "off" => false
-        case _ => !u.useAudio
-      }
-      u.copy(useAudio = update)
+  onCommand("voice") { implicit msg =>
+    withArgs { args =>
+      val newVoice = args.headOption.getOrElse("alloy")
+      withUserState { u => u.copy(audioVoice = newVoice) }
+      reply(s"Voice changed to $newVoice").map(_ => ())
     }
-    reply(
-      (if(getOrSetUserState.useAudio)
-        "Enabling audio messages. Remember (as per ChatGPT policy I have to remind you!) this is not a real person's voice ! It's AI."
-      else "Disabling audio")
-    ).map(_ => ())
-  } }
+  }
 
+  def toggle(
+    get: UserState => Boolean,
+    set: (UserState, Boolean) => UserState,
+    replyText: Option[Boolean => String] = None
+  ) = { implicit msg: Message =>
+    withArgs { args =>
+      withUserState { u =>
+        val cmd = args.headOption.getOrElse("toggle")
+        val update = cmd match {
+          case "on" => true
+          case "off" => false
+          case _ => !get(u)
+        }
+        set(u, update)
+      }
+      val newState = get(getOrSetUserState)
+      reply(replyText.map(f => f(newState)).getOrElse(if(newState) "Enabled" else "Disabled")).map(_ => ())
+    }
+  }
+
+  onCommand("audio")(
+    toggle(_.useAudio, (st, b) => st.copy(useAudio = b),
+      Some { b =>
+        if(b)
+          "Enabling audio messages. Remember (as per ChatGPT policy I have to remind you!) this is not a real person's voice ! It's AI."
+        else
+          "Disabling audio"
+      }
+    )
+  )
+
+  onCommand("corrections")(toggle(_.showCorrections, (st, b) => st.copy(showCorrections = b)))
 
   onMessage { implicit msg =>
     if(msg.text.isDefined) handleTextMessage(msg)
@@ -119,7 +143,12 @@ class TaindemBot(
 
   def sendTaindemAnswer(answer: TaindemAnswer)(implicit msg: Message): Future[Unit] =
     for {
-      _ <- getCorrection(answer).map(c => request(SendMessage(chatId = msg.chat.chatId, replyToMessageId = Some(msg.messageId), text = c, parseMode = Some(ParseMode.HTML)))).getOrElse(Future.successful(()))
+      _ <- (
+        if(getOrSetUserState.showCorrections)
+          getCorrection(answer)
+          .map(c => request(SendMessage(chatId = msg.chat.chatId, replyToMessageId = Some(msg.messageId), text = c, parseMode = Some(ParseMode.HTML))))
+        else None
+      ).getOrElse(Future.successful(()))
       _ <- answer.audio match {
         case Some(audio) =>
           request(SendVoice(msg.source, InputFile("answer.mp3", audio)))
@@ -128,7 +157,7 @@ class TaindemBot(
       }
     } yield ()
 
-  def handleVoiceMessage(implicit msg: Message): Future[Unit] = // reply("voice not supported yet").map(_ => ())
+  def handleVoiceMessage(implicit msg: Message): Future[Unit] =
     msg.voice match {
       case None => Future.successful(())
       case Some(v) =>
@@ -166,7 +195,7 @@ class TaindemBot(
       case Some(text) =>
         val u = getOrSetUserState
         (if(u.useAudio) uploadingAudio else typing).flatMap { _ =>
-          val req = u.t.submitMessage(text, useAudio = u.useAudio, audioVoice = audioVoice)
+          val req = u.t.submitMessage(text, useAudio = u.useAudio, audioVoice = u.audioVoice)
           req.map {
             case Left(errMsg) =>
               logger.info(s"Error: $errMsg")

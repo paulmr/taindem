@@ -24,21 +24,6 @@ class GPTClient(val apiKey: String, sttpBackend: SttpBackend[Future, Any])(impli
     "Authorization" -> s"Bearer $apiKey"
   )
 
-  // the implementation should:
-  //    - add the provided headers to the request
-  //    - send a `POST` request to the provided URL with the `body`
-  //    and return the response as an `Either` (i.e. `GPTResponse`)
-  //    with an error string in left if there was a problem
-  protected def sendRequestBase(url: String, headers: Map[String, String], body: Array[Byte]):
-      Future[GPTResponse[Array[Byte]]] =
-    basicRequest
-      .headers(headers)
-      .body(body)
-      .post(uri"$url")
-      .response(asByteArray)
-      .send(sttpBackend)
-      .map(_.body)
-
   private def decodeAs[T : Decoder](json: Json): GPTResponse[T] =
     json.as[T].left.map(_.message)
 

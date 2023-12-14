@@ -23,6 +23,7 @@ import sttp.client3._
 import com.bot4s.telegram.methods.GetFile
 import taindem.model.TranscriptionRequest
 import java.time.Instant
+import scala.concurrent.ExecutionContext
 
 case class UserState(t: Taindem, useAudio: Boolean = false, audioVoice: String = "alloy", showCorrections: Boolean = true)
 
@@ -35,6 +36,10 @@ class TaindemBot(
     with Messages[Future]
     with Commands[Future]
     with ChatActions[Future] {
+
+  implicit class futureIgnore[T](f: Future[T]) {
+    def discard = f.map(_ => ())
+  }
 
   private val users = collection.mutable.Map.empty[ChatId, UserState]
 
@@ -68,13 +73,12 @@ class TaindemBot(
 
   onCommand("ping") { implicit msg =>
     val u = getOrSetUserState
-    reply(s"pong; audio=${u.useAudio} ; corrections=${u.showCorrections} ; voice=${u.audioVoice}")
-      .map(_ => ())
+    reply(s"pong; audio=${u.useAudio} ; corrections=${u.showCorrections} ; voice=${u.audioVoice}").discard
   }
 
   onCommand("reset") { implicit msg =>
     withUserState(_.copy(t = new Taindem(gpt)))
-    reply("Chat history reset").map(_ => ())
+    reply("Chat history reset").discard
   }
 
   onCommand("lang") { implicit msg =>
@@ -83,7 +87,7 @@ class TaindemBot(
         withUserState(u => u.copy(t = new Taindem(gpt, language = lang)))
         request(SendMessage(chatId = msg.chat.chatId, text = s"Language changed to $lang"))
           .map(_ => ())
-      }).getOrElse(reply("Please give me a language to change to as an argument.").map(_ => ()))
+      }).getOrElse(reply("Please give me a language to change to as an argument.").discard)
     }
   }
 
@@ -98,7 +102,7 @@ class TaindemBot(
     withArgs { args =>
       val newVoice = args.headOption.getOrElse("alloy")
       withUserState { u => u.copy(audioVoice = newVoice) }
-      reply(s"Voice changed to $newVoice").map(_ => ())
+      reply(s"Voice changed to $newVoice").discard
     }
   }
 
@@ -118,7 +122,7 @@ class TaindemBot(
         set(u, update)
       }
       val newState = get(getOrSetUserState)
-      reply(replyText.map(f => f(newState)).getOrElse(if(newState) "Enabled" else "Disabled")).map(_ => ())
+      reply(replyText.map(f => f(newState)).getOrElse(if(newState) "Enabled" else "Disabled")).discard
     }
   }
 

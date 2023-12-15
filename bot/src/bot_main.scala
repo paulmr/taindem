@@ -41,12 +41,8 @@ object TaindemBotMain extends StrictLogging {
 
     logger.info("Starting bot")
     val res = bot.run()
-    println("Press [ENTER] to shutdown the bot, it may take a few seconds...")
-    scala.io.StdIn.readLine()
-    logger.info("Shutting down...")
-    bot.shutdown()
     Await.ready(res, Duration.Inf)
-    println("Complete")
+    logger.info("Complete")
   }
 
   def main(args: Array[String]): Unit =

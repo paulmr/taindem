@@ -27,12 +27,14 @@ object lib extends Module {
       ivy"com.github.guillaumebort::scalalibdiff::0.1.0", // currently doesn't exist for scala 2.13 -> need to publish locally
     )
 
+  }
+
+  object jvm extends LibModule {
     object test extends ScalaTests with TestModule.Utest {
       def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.2")
     }
-
   }
-  object jvm extends LibModule
+
   object js extends LibModule with BasicJSModule
 }
 

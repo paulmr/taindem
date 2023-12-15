@@ -63,7 +63,6 @@ case class Taindem(
     } else textResult
   }
 
-  def getHistory = history.toSeq
 }
 
 object Taindem {

@@ -20,6 +20,8 @@ case class Taindem(
 
   private def addMessage(m: Message) = history = history :+ m
 
+  def getHistory() = history
+
   def reset() = history = Taindem.startPrompt(language)
 
   def submitMessage(msgText: String, useAudio: Boolean = false, audioVoice: String = "alloy")(implicit ec: ExecutionContext): Future[GPTResponse[TaindemAnswer]] = {

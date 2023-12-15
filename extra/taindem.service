@@ -1,0 +1,15 @@
+# should be /etc/systemd/system/taindem.service
+
+[Unit]
+Description=A Telegram bot
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/java -Dlogback.configurationFile=./logback.xml -jar taindem.jar
+Restart=on-failure
+User=taindem
+WorkingDirectory=/home/taindem
+EnvironmentFile=/etc/taindem/taindem.conf
+
+[Install]
+WantedBy=multi-user.target

@@ -11,6 +11,8 @@ import sttp.client3.HttpClientFutureBackend
 import scalaj.http._
 import scala.concurrent.Await
 import com.typesafe.scalalogging.StrictLogging
+import mainargs.Flag
+import mainargs.arg
 
 // class GPTClientScalaJ(val apiKey: String)(implicit val ec: ExecutionContext) extends GPTClient {
 //   protected def sendRequestBase(url: String, headers: Map[String,String], body: String):
@@ -30,7 +32,7 @@ import com.typesafe.scalalogging.StrictLogging
 object TaindemBotMain extends StrictLogging {
 
   @mainargs.main
-  def run(audioDefault: Boolean = false): Unit = {
+  def run(audioDefault: Boolean = false, @arg(short='i') interactive: Flag): Unit = {
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
     val botToken = Option(System.getenv("TGRAM_BOT_KEY")).get
@@ -41,6 +43,12 @@ object TaindemBotMain extends StrictLogging {
 
     logger.info("Starting bot")
     val res = bot.run()
+    if(interactive.value) {
+      println("Interactive: press [ENTER] to shutdown the bot, it may take a few seconds...")
+      scala.io.StdIn.readLine()
+      logger.info("Shutting down...")
+      bot.shutdown()
+    }
     Await.ready(res, Duration.Inf)
     logger.info("Complete")
   }

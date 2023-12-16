@@ -37,6 +37,10 @@ class TaindemBot(
     with Commands[Future]
     with ChatActions[Future] {
 
+  val startTime = Instant.now()
+
+  def uptime() = java.time.Duration.ofSeconds(Instant.now().getEpochSecond() - startTime.getEpochSecond())
+
   implicit class futureIgnore[T](f: Future[T]) {
     def discard = f.map(_ => ())
   }
@@ -79,7 +83,8 @@ class TaindemBot(
         s"*audio*: ${u.useAudio}",
         s"*corrections*: ${u.showCorrections}",
         s"*voice*: ${u.audioVoice}",
-        s"*language*: ${u.t.language}"
+        s"*language*: ${u.t.language}",
+        s"*uptime*: ${startTime} (${uptime()})",
       ).mkString("\n"),
       Some(ParseMode.Markdown)
     ).discard

@@ -85,6 +85,7 @@ class TaindemBot(
         s"*voice*: ${u.audioVoice}",
         s"*language*: ${u.t.language}",
         s"*uptime*: ${startTime} (${uptime()})",
+        s"*history length*: ${u.t.getHistory().length}",
       ).mkString("\n"),
       Some(ParseMode.Markdown)
     ).discard

@@ -14,21 +14,6 @@ import com.typesafe.scalalogging.StrictLogging
 import mainargs.Flag
 import mainargs.arg
 
-// class GPTClientScalaJ(val apiKey: String)(implicit val ec: ExecutionContext) extends GPTClient {
-//   protected def sendRequestBase(url: String, headers: Map[String,String], body: String):
-//       Future[GPTClient.GPTResponse[Array[Byte]]] = Future {
-
-//     val response = Http(url)
-//       .method("POST")
-//       .headers(headers)
-//       .postData(body)
-//       .asBytes
-
-//     if(response.isSuccess) Right(response.body)
-//     else Left(response.statusLine)
-//   }
-// }
-
 object TaindemBotMain extends StrictLogging {
 
   @mainargs.main

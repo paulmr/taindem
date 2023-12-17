@@ -5,7 +5,7 @@ Description=A Telegram bot
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/java -Dlogback.configurationFile=./logback.xml -jar taindem.jar
+ExecStart=/usr/bin/java -Dlogback.configurationFile=./logback.xml -jar taindem.jar -b
 Restart=on-failure
 User=taindem
 WorkingDirectory=/home/taindem

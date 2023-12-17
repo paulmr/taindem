@@ -57,8 +57,18 @@ class TaindemBot(
       newSt
   }
 
-  private def withUserState(f: UserState => UserState)(implicit msg: Message) =
-    users.update(msg.chat.chatId, f(getOrSetUserState))
+  private def updateUserState[T](f: UserState => (T, UserState))(implicit msg: Message): T =
+    users.synchronized {
+      val (res, st) = f(getOrSetUserState)
+      users.update(msg.chat.chatId, st)
+      res
+    }
+
+  private def updateUserState(f: UserState => UserState)(implicit msg: Message): Unit =
+    updateUserState(st => ((), f(st)))
+
+  private def withUserState[T](f: UserState => T)(implicit msg: Message): T =
+    updateUserState { st => (f(st), st) }
 
   private def getCorrection(answer: TaindemAnswer): Option[String] =
     for(correction <- answer.correction; ds <- answer.diff) yield {
@@ -76,30 +86,31 @@ class TaindemBot(
     }
 
   onCommand("ping") { implicit msg =>
-    val u = getOrSetUserState
-    reply(
-      List(
-        "pong",
-        s"*audio*: ${u.useAudio}",
-        s"*corrections*: ${u.showCorrections}",
-        s"*voice*: ${u.audioVoice}",
-        s"*language*: ${u.t.language}",
-        s"*uptime*: ${startTime} (${uptime()})",
-        s"*history length*: ${u.t.getHistory().length}",
-      ).mkString("\n"),
-      Some(ParseMode.Markdown)
-    ).discard
+    withUserState { u =>
+      reply(
+        List(
+          "pong",
+          s"*audio*: ${u.useAudio}",
+          s"*corrections*: ${u.showCorrections}",
+          s"*voice*: ${u.audioVoice}",
+          s"*language*: ${u.t.language}",
+          s"*uptime*: ${startTime} (${uptime()})",
+          s"*history length*: ${u.t.getHistory().length}",
+        ).mkString("\n"),
+        Some(ParseMode.Markdown)
+      ).discard
+    }
   }
 
   onCommand("reset") { implicit msg =>
-    withUserState(_.copy(t = new Taindem(gpt)))
+    updateUserState(_.copy(t = new Taindem(gpt)))
     reply("Chat history reset").discard
   }
 
   onCommand("lang") { implicit msg =>
     withArgs { args =>
       (for(lang <- args.headOption) yield {
-        withUserState(u => u.copy(t = new Taindem(gpt, language = lang)))
+        updateUserState(u => u.copy(t = new Taindem(gpt, language = lang)))
         request(SendMessage(chatId = msg.chat.chatId, text = s"Language changed to $lang"))
           .map(_ => ())
       }).getOrElse(reply("Please give me a language to change to as an argument.").discard)
@@ -116,7 +127,7 @@ class TaindemBot(
   onCommand("voice") { implicit msg =>
     withArgs { args =>
       val newVoice = args.headOption.getOrElse("alloy")
-      withUserState { u => u.copy(audioVoice = newVoice) }
+      updateUserState { u => u.copy(audioVoice = newVoice) }
       reply(s"Voice changed to $newVoice").discard
     }
   }
@@ -127,17 +138,20 @@ class TaindemBot(
     replyText: Option[Boolean => String] = None
   ) = { implicit msg: Message =>
     withArgs { args =>
-      withUserState { u =>
+      updateUserState { u =>
         val cmd = args.headOption.getOrElse("toggle")
         val update = cmd match {
           case "on" => true
           case "off" => false
           case _ => !get(u)
         }
-        set(u, update)
+        val newState = set(u, update)
+        val newSetting = get(newState)
+        val res = reply(
+          replyText.map(f => f(newSetting)).getOrElse(if(newSetting) "Enabled" else "Disabled")
+        ).discard
+        (res, newState)
       }
-      val newState = get(getOrSetUserState)
-      reply(replyText.map(f => f(newState)).getOrElse(if(newState) "Enabled" else "Disabled")).discard
     }
   }
 
@@ -196,12 +210,14 @@ class TaindemBot(
               logger.info(s"error: $err")
               reply(s"error: $err")
             case Right(res) =>
-              getOrSetUserState.t.submitMessage(res.text, getOrSetUserState.useAudio).flatMap {
-                case Left(err) =>
-                  logger.info(s"error: $err")
-                  reply(s"Error: $err")
-                case Right(answer) =>
-                  sendTaindemAnswer(answer)
+              withUserState { u =>
+                u.t.submitMessage(res.text, getOrSetUserState.useAudio).flatMap {
+                  case Left(err) =>
+                    logger.info(s"error: $err")
+                    reply(s"Error: $err")
+                  case Right(answer) =>
+                    sendTaindemAnswer(answer)
+                }
               }
           }
         } yield ()
@@ -212,20 +228,21 @@ class TaindemBot(
       case None => Future(()) // ignore non-text messages
       case Some(text) if text.startsWith("/") => Future(()) // ignore commands
       case Some(text) =>
-        val u = getOrSetUserState
-        (if(u.useAudio) uploadingAudio else typing).flatMap { _ =>
-          val req = u.t.submitMessage(text, useAudio = u.useAudio, audioVoice = u.audioVoice)
-          req.map {
-            case Left(errMsg) =>
-              logger.info(s"Error: $errMsg")
-              request(
-                SendMessage(
-                  chatId = msg.chat.chatId,
-                  text = "Sorry, unable to send message. Try again."
+        withUserState { u =>
+          (if(u.useAudio) uploadingAudio else typing).flatMap { _ =>
+            val req = u.t.submitMessage(text, useAudio = u.useAudio, audioVoice = u.audioVoice)
+            req.map {
+              case Left(errMsg) =>
+                logger.info(s"Error: $errMsg")
+                request(
+                  SendMessage(
+                    chatId = msg.chat.chatId,
+                    text = "Sorry, unable to send message. Try again."
+                  )
                 )
-              )
-            case Right(answer) =>
-              sendTaindemAnswer(answer)
+              case Right(answer) =>
+                sendTaindemAnswer(answer)
+            }
           }
         }
     }

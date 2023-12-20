@@ -80,7 +80,7 @@ object Cli {
     val apiKey = Option(System.getenv("GPT_API_KEY")).get
     val gpt = new GPTClient(apiKey, HttpClientFutureBackend())
     val chosenModel = GPTModel.nicknames.get(model).orElse(GPTModel.models.find(_.name == model)).get
-    logger.info(s"Using model: ${chosenModel.name}")
+    logger.info(s"model: ${chosenModel.name} ; language: ${language}")
     val taindem = Taindem(gpt, temperature = temperature, language = language, model = chosenModel)
     mainLoop(taindem, timeout.seconds)
   }

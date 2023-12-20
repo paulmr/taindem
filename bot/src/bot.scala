@@ -132,6 +132,13 @@ class TaindemBot(
     }
   }
 
+  onCommand("repeat") { implicit msg =>
+    withUserState { st =>
+      val msgText = st.t.getHistory().findLast(_.role == "assistant").map(_.content).getOrElse("(not found)")
+      reply(msgText).discard
+    }
+  }
+
   def toggle(
     get: UserState => Boolean,
     set: (UserState, Boolean) => UserState,

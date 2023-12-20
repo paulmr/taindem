@@ -37,19 +37,21 @@ case class Taindem(
     val textResult: Future[GPTResponse[TaindemAnswer]] = gpt.completion(req).map { res =>
       res.flatMap { completions =>
         val baseMessage = completions.choices.head.message
-        addMessage(baseMessage)
         parse(baseMessage.content)
           .flatMap(_.as[TaindemAnswerJson])
           .map { baseAnswer =>
+            addMessage(baseMessage.copy(content = baseAnswer.answer))
             val diff = for(correction <- baseAnswer.correction) yield Diff(
               msgText.split("\\s+").toSeq, correction.split("\\s+").toSeq)
             TaindemAnswer(correction = baseAnswer.correction.filter(_ != msgText), // remove if no changes
               answer = baseAnswer.answer, question = msgText, diff = diff, audio = None)
           }
           .left.map(_.getMessage())
-          .orElse[String, TaindemAnswer](
+          .orElse[String, TaindemAnswer] {
+            addMessage(baseMessage)
             Right(TaindemAnswer(correction = None, answer = baseMessage.content,
-              question = msgText, diff = None, audio = None)))
+              question = msgText, diff = None, audio = None))
+          }
       }
     }
     if(useAudio) {

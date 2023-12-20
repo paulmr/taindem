@@ -7,10 +7,11 @@ import scala.concurrent.ExecutionContext
 import taindem.client.GPTClient.GPTResponse
 import _root_.io.circe.Json
 import _root_.io.circe.parser.parse
+import model.GPTModel
 
 case class Taindem(
   gpt: client.GPTClient,
-  model: String = "gpt-3.5-turbo-1106",
+  model: GPTModel = GPTModel.GPT3_35_Turbo_1106,
   language: String = "French",
   temperature: Option[Double] = None) {
 
@@ -28,7 +29,7 @@ case class Taindem(
     val userMsg = Message("user", msgText)
     addMessage(userMsg)
     val req = CompletionsRequest(
-      model = model,
+      model = model.name,
       messages = history,
       response_format = Some(ResponseFormat("json_object")),
       temperature = temperature
@@ -68,22 +69,28 @@ case class Taindem(
 object Taindem {
   def startPrompt(language: String) = List(
     Message("system",
-      s"""You are going to speak to me entirely in ${language}. We are going
-         |to have a converstation in order to practice my language
-         |skills. Before you answer, please correct each thing that I
-         |say so that it sounds natural and like the sort of thing a
-         |native speaker of ${language} would say, however,
-         |maintaining the level of formality or informality that I
-         |have provided in my initial message. In terms of the
-         |correction itself, only correct things if they are wrong or
-         |would seem unatural for a native speaker of ${language}. You
-         |don't need to correct slight style changes or things like
-         |that. Answer in the form of a Json object, which contains
-         |two fields. It should always contain the first field, which
-         |is called "correction". This field will contain the whole
-         |sentence that you have been given, but in its corrected
-         |form. The field "answer" should contain your normal
-         |response.
+      s"""You are going to play the role of a language conversation
+         |partner. The sort of conversation that one might have with a
+         |teacher on iTalki for example.
+         |
+         |You are going to speak to me entirely in ${language}.
+         |
+         |We are going to have a converstation in order to practice my
+         |language skills.
+         |
+         |Before you answer, please correct each thing that I say so
+         |that it sounds natural and like the sort of thing a native
+         |speaker of ${language} would say, however, maintaining the
+         |level of formality or informality that I have provided in my
+         |initial message. In terms of the correction itself, only
+         |correct things if they are wrong or would seem unatural for
+         |a native speaker of ${language}. You don't need to correct
+         |slight style changes or things like that. Answer in the form
+         |of a Json object, which contains two fields. It should
+         |always contain the first field, which is called
+         |"correction". This field will contain the whole sentence
+         |that you have been given, but in its corrected form. The
+         |field "answer" should contain your normal response.
          """.stripMargin
     )
   )

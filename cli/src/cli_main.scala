@@ -8,8 +8,11 @@ import scalalibdiff.Diff
 import java.io.FileOutputStream
 import taindem.client.GPTClient
 import sttp.client3.HttpClientFutureBackend
+import taindem.model.GPTModel
 
 object Cli {
+
+  val logger = org.slf4j.LoggerFactory.getLogger(getClass().getName())
 
   implicit val ec: scala.concurrent.ExecutionContext =
     scala.concurrent.ExecutionContext.global
@@ -76,7 +79,9 @@ object Cli {
   ) = {
     val apiKey = Option(System.getenv("GPT_API_KEY")).get
     val gpt = new GPTClient(apiKey, HttpClientFutureBackend())
-    val taindem = Taindem(gpt, temperature = temperature, language = language, model = model)
+    val chosenModel = GPTModel.nicknames.get(model).orElse(GPTModel.models.find(_.name == model)).get
+    logger.info(s"Using model: ${chosenModel.name}")
+    val taindem = Taindem(gpt, temperature = temperature, language = language, model = chosenModel)
     mainLoop(taindem, timeout.seconds)
   }
 

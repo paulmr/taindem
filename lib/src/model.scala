@@ -70,3 +70,17 @@ case class TaindemAnswer(
   diff: Option[List[Diff.Difference]],
   audio: Option[Array[Byte]] = None
 )
+
+sealed trait GPTModel { val name: String }
+object GPTModel {
+  case object GPT4_1106_Preview extends GPTModel { val name = "gpt-4-1106-preview" }
+  case object GPT4 extends GPTModel { val name = "gpt-4" }
+  case object GPT3_35_Turbo_1106 extends GPTModel { val name = "gpt-3.5-turbo-1106" }
+
+  val models = Seq(GPT4_1106_Preview, GPT4, GPT3_35_Turbo_1106)
+
+  val nicknames: Map[String, GPTModel] = Map(
+    "gpt3" -> GPT3_35_Turbo_1106,
+    "gpt4" -> GPT4_1106_Preview
+  )
+}

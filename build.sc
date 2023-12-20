@@ -44,7 +44,8 @@ object cli extends BasicModule {
   def ivyDeps = Agg(
     ivy"com.lihaoyi::mainargs:0.5.4",
     ivy"com.lihaoyi::fansi:0.4.0",
-    ivy"com.lihaoyi::requests:0.8.0"
+    ivy"com.lihaoyi::requests:0.8.0",
+    ivy"org.slf4j:slf4j-simple:2.0.9"
   )
 }
 

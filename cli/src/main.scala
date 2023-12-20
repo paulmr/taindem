@@ -15,7 +15,7 @@ object Cli {
     scala.concurrent.ExecutionContext.global
 
   def printHistory(t: Taindem) =
-    println(t.getHistory.map(msg => s"[${msg.role}]> ${msg.content}").mkString("\n"))
+    println(t.getHistory().map(msg => s"[${msg.role}]> ${msg.content}").mkString("\n"))
 
   def diffToString(ds: List[Diff.Difference], _l: String, _r: String): String = {
     val l = _l.split("\\s+").toSeq
@@ -71,11 +71,12 @@ object Cli {
 
   @mainargs.main def run(timeout: Int = 30,
     language: String = "French",
-    temperature: Option[Double] = None
+    model: String = "gpt-3.5-turbo-1106", // https://platform.openai.com/docs/models
+    temperature: Option[Double] = None,
   ) = {
     val apiKey = Option(System.getenv("GPT_API_KEY")).get
     val gpt = new GPTClient(apiKey, HttpClientFutureBackend())
-    val taindem = Taindem(gpt, temperature = temperature, language = language)
+    val taindem = Taindem(gpt, temperature = temperature, language = language, model = model)
     mainLoop(taindem, timeout.seconds)
   }
 

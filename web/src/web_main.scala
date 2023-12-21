@@ -107,7 +107,7 @@ object TaindemWebApp extends LazyLogging {
     implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
     LoggerConfig.factory = ConsoleLoggerFactory()
-    LoggerConfig.level = LogLevel.DEBUG
+    LoggerConfig.level = LogLevel.INFO
 
     val apiKey = findApiKey()
     logger.info(s"using api key: ${apiKey}")

@@ -14,9 +14,8 @@ import GPTClient._
 import sttp.client3._
 import sttp.model.StatusCode
 
-class GPTClient(val apiKey: String, sttpBackend: SttpBackend[Future, Any])(implicit ec: ExecutionContext) {
-
-  val logger = org.slf4j.LoggerFactory.getLogger(getClass().getName())
+class GPTClient(val apiKey: String, sttpBackend: SttpBackend[Future, Any])(implicit ec: ExecutionContext)
+    extends slogging.StrictLogging {
 
   val apiRoot: String = "https://api.openai.com"
 

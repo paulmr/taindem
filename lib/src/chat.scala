@@ -13,9 +13,7 @@ case class Taindem(
   gpt: client.GPTClient,
   model: GPTModel = GPTModel.GPT3_35_Turbo_1106,
   language: String = "French",
-  temperature: Option[Double] = None) {
-
-  val logger = org.slf4j.LoggerFactory.getLogger(getClass().getName())
+  temperature: Option[Double] = None) extends slogging.StrictLogging {
 
   private var history: List[Message] = Taindem.startPrompt(language)
 

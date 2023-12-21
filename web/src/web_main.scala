@@ -8,9 +8,10 @@ import scala.scalajs.js.annotation._
 import scalalibdiff.Diff
 import taindem.client.GPTClient
 import sttp.client3.FetchBackend
+import slogging._
 
 @JSExportTopLevel("taindem")
-object TaindemWebApp {
+object TaindemWebApp extends LazyLogging {
 
   sealed trait ConversationPoint
   case class RobotResponse(message: TaindemAnswer) extends ConversationPoint
@@ -88,7 +89,7 @@ object TaindemWebApp {
   def findApiKey(): String = {
     // if there is an api key in the url, override it with that, and save it
     if(qs.has("api-key")) {
-      console.log("saving api key from url")
+      logger.info("saving api key from url")
       window.localStorage.setItem(localStorageKey, qs.get("api-key"))
     }
     val stored = window.localStorage.getItem(localStorageKey)
@@ -105,8 +106,11 @@ object TaindemWebApp {
   def main(): Unit = {
     implicit val ec: scala.concurrent.ExecutionContext = scala.scalajs.concurrent.JSExecutionContext.queue
 
+    LoggerConfig.factory = ConsoleLoggerFactory()
+    LoggerConfig.level = LogLevel.DEBUG
+
     val apiKey = findApiKey()
-    console.log(s"using api key: ${apiKey}")
+    logger.info(s"using api key: ${apiKey}")
     val lang = optionalQueryParam("lang").getOrElse("French")
     val gpt = new GPTClient(apiKey, FetchBackend())
     val t = new taindem.Taindem(gpt, language = lang)

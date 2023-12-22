@@ -13,7 +13,8 @@ case class Taindem(
   gpt: client.GPTClient,
   model: GPTModel = GPTModel.GPT3_35_Turbo_1106,
   language: String = "French",
-  temperature: Option[Double] = None) extends slogging.StrictLogging {
+  temperature: Option[Double] = None
+) extends TaindemLogging {
 
   private var history: List[Message] = Taindem.startPrompt(language)
 
@@ -35,7 +36,7 @@ case class Taindem(
     val textResult: Future[GPTResponse[TaindemAnswer]] = gpt.completion(req).map { res =>
       res.flatMap { completions =>
         val baseMessage = completions.choices.head.message
-        logger.debug(s"received message: ${baseMessage}")
+        logger.info(s"received message: ${baseMessage}")
         parse(baseMessage.content)
           .flatMap(_.as[TaindemAnswerJson])
           .map { baseAnswer =>

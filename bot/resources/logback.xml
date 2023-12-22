@@ -12,6 +12,6 @@
     <appender-ref ref="STDOUT" />
   </root>
 
-  <logger name="com.bot4s.telegram.clients" level="INFO"/>
+  <logger name="com.bot4s.telegram" level="ERROR"/>
 
 </configuration>

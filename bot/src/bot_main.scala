@@ -23,6 +23,8 @@ object TaindemBotMain extends StrictLogging {
   ): Unit = {
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
+    slogging.LoggerConfig.factory = slogging.SLF4JLoggerFactory()
+
     val botToken = Option(System.getenv("TGRAM_BOT_KEY")).get
     val gptApiKey = Option(System.getenv("GPT_API_KEY")).get
     implicit val httpBackend = HttpClientFutureBackend()

@@ -73,8 +73,7 @@ object bot extends BasicModule {
   override def moduleDeps = Seq(lib.jvm)
 
   def ivyDeps = Agg(
-    // ivy"biz.enef::slogging:0.6.2",
-    // ivy"biz.enef::slogging-slf4j:0.6.2",
+    ivy"biz.enef::slogging-slf4j:0.6.2",
     ivy"com.lihaoyi::mainargs:0.5.4",
     ivy"com.bot4s::telegram-core:5.7.1",
   )

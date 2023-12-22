@@ -36,7 +36,7 @@ case class Taindem(
     val textResult: Future[GPTResponse[TaindemAnswer]] = gpt.completion(req).map { res =>
       res.flatMap { completions =>
         val baseMessage = completions.choices.head.message
-        logger.info(s"received message: ${baseMessage}")
+        logger.debug(s"received message: ${baseMessage}")
         parse(baseMessage.content)
           .flatMap(_.as[TaindemAnswerJson])
           .map { baseAnswer =>

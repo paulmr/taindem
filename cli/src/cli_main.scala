@@ -9,10 +9,10 @@ import java.io.FileOutputStream
 import taindem.client.GPTClient
 import sttp.client3.HttpClientFutureBackend
 import taindem.model.GPTModel
+import slogging.LazyLogging
+import mainargs.Flag
 
-object Cli {
-
-  val logger = org.slf4j.LoggerFactory.getLogger(getClass().getName())
+object Cli extends LazyLogging {
 
   implicit val ec: scala.concurrent.ExecutionContext =
     scala.concurrent.ExecutionContext.global
@@ -75,8 +75,12 @@ object Cli {
   @mainargs.main def run(timeout: Int = 30,
     language: String = "French",
     model: String = "gpt-3.5-turbo-1106", // https://platform.openai.com/docs/models
+    @mainargs.arg(short = 'v')
+    verbose: Flag,
     temperature: Option[Double] = None,
   ) = {
+    slogging.LoggerConfig.factory = slogging.PrintLoggerFactory()
+    if(verbose.value) slogging.LoggerConfig.level = slogging.LogLevel.DEBUG
     val apiKey = Option(System.getenv("GPT_API_KEY")).get
     val gpt = new GPTClient(apiKey, HttpClientFutureBackend())
     val chosenModel = GPTModel.nicknames.get(model).orElse(GPTModel.models.find(_.name == model)).get
